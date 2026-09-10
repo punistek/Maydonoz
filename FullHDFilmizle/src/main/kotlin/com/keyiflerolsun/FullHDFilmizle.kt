@@ -102,35 +102,35 @@ class FullHDFilmizle : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        /*
-         * Bu provider artık yayın çözümlemez.
-         * Katalog + arama + poster + detay verisini verir.
-         *
-         * Play aşamasında gerçek detail URL'yi uygulamaya geri yollar.
-         * X-PARS-WEBVIEW=1 işareti baba_burda NativePlayer tarafından
-         * MainActivity.resolveAndPlay akışına yönlendirilir.
-         *
-         * MainActivity gizli WebView:
-         * detail -> VidMixi -> /m3u/ -> Media3
-         */
-        callback(
-            newExtractorLink(
-                source = name,
-                name = "$name WebView",
-                url = data,
-                type = ExtractorLinkType.VIDEO
-            ) {
-                this.referer = data
-                this.quality = Qualities.Unknown.value
-                this.headers = mapOf(
-                    "User-Agent" to ua,
-                    "Referer" to data,
-                    "X-PARS-WEBVIEW" to "1",
-                    "X-PARS-DETAIL-REFERER" to data
-                )
-            }
-        )
+        println("FHD_DIAG LOAD_LINKS detail=$data")
 
-        return true
+        val detail = app.get(data, headers = headers())
+        println("FHD_DIAG DETAIL status=${detail.code} final=${detail.url}")
+
+        val doc = detail.document
+        val frames = doc.select("iframe[src]").map { fixUrl(it.attr("src")) }.distinct()
+        println("FHD_DIAG IFRAMES count=${frames.size}")
+
+        frames.forEachIndexed { index, frame ->
+            println("FHD_DIAG IFRAME[$index]=$frame")
+        }
+
+        val vidMixi = frames.firstOrNull {
+            runCatching { java.net.URI(it).host?.contains("vidmixi.com", ignoreCase = true) == true }
+                .getOrDefault(false)
+        }
+
+        if (vidMixi == null) {
+            println("FHD_DIAG FAIL stage=DETAIL reason=VIDMIXI_IFRAME_NOT_FOUND")
+            return false
+        }
+
+        println("FHD_DIAG VIDMIXI_HANDOFF url=$vidMixi")
+        return loadExtractor(
+            url = vidMixi,
+            referer = data,
+            subtitleCallback = subtitleCallback,
+            callback = callback
+        )
     }
 }
