@@ -1,0 +1,43 @@
+<script>      async function loadStream(id) {
+
+        if (!id) {
+
+          document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20px'>ID eksik</h2>";
+
+          return;
+
+        }
+
+        try {
+
+          const [analyticsRes, cinemaRes] = await Promise.allSettled([
+
+            fetch("https://teletv5.top/load/yayinlink.php?id=" + encodeURIComponent(id)),
+
+            fetch("https://streamsport365.com/cinema", {
+
+              method: "POST",
+
+              headers: { "Content-Type": "application/json", "Accept": "*/*" },
+
+              body: JSON.stringify({
+
+                AppId: "5000",
+
+                AppVer: "1",
+
+                VpcVer: "1.0.12",
+
+                Language: "en",
+
+                Token: "",
+
+                VideoId: id
+
+              })
+
+            })
+
+          ]);
+
+</script>
