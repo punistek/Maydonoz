@@ -146,10 +146,10 @@ class SPOR2 : MainAPI() {
     private fun requestHints(html: String): List<String> {
         val out = linkedSetOf<String>()
         val patterns = listOf(
-            Regex("""https?://[^'\"\\s<>]+""", RegexOption.IGNORE_CASE),
-            Regex("""(?:src|href)\\s*=\\s*['\"]([^'\"]+)['\"]""", RegexOption.IGNORE_CASE),
-            Regex("""(?:fetch|getJSON)\\s*\\(\\s*['\"]?([^'\"\\s,)]+)""", RegexOption.IGNORE_CASE),
-            Regex("""[^'\"\\s]+\\.m3u8(?:\\?[^'\"\\s]*)?""", RegexOption.IGNORE_CASE)
+            Regex("""https?://[^'"\s<>]+""", RegexOption.IGNORE_CASE),
+            Regex("""(?:src|href)\s*=\s*['"]([^'"]+)['"]""", RegexOption.IGNORE_CASE),
+            Regex("""(?:fetch|getJSON)\s*\(\s*['"]?([^'"\s,)]+)""", RegexOption.IGNORE_CASE),
+            Regex("""[^'"\s]+\.m3u8(?:\?[^'"\s]*)?""", RegexOption.IGNORE_CASE)
         )
         patterns.forEach { regex ->
             regex.findAll(html).take(40).forEach { m ->

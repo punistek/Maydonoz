@@ -1,4 +1,4 @@
-version = 1
+version = 2
 
 cloudstream {
     description = "SPOR2 - izlemaç dinamik kanal/player resolver + nokta atışı tanılama logları"
