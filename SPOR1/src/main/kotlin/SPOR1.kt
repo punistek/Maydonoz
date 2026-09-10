@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.ExtractorLinkType
-import com.lagradost.cloudstream3.utils.newExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
+import com.lagradost.cloudstream3.utils.newExtractorLink
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import java.net.URI
@@ -42,6 +42,25 @@ class SPOR1 : MainAPI() {
 
     @Volatile
     private var cachedEndpoints: Endpoints? = null
+
+    private val blockedHosts = mutableMapOf<String, Long>()
+    private val blockedForMs = 5 * 60 * 1000L
+
+    private fun hostOf(url: String): String? = try { URI(url).host?.lowercase() } catch (_: Throwable) { null }
+
+    private fun isBlocked(url: String): Boolean {
+        val host = hostOf(url) ?: return false
+        val until = blockedHosts[host] ?: return false
+        if (System.currentTimeMillis() >= until) {
+            blockedHosts.remove(host)
+            return false
+        }
+        return true
+    }
+
+    private fun markBlocked(url: String) {
+        hostOf(url)?.let { blockedHosts[it] = System.currentTimeMillis() + blockedForMs }
+    }
 
     private fun normalizeSite(url: String): String =
         url.trim().trimEnd('/')
@@ -324,62 +343,113 @@ class SPOR1 : MainAPI() {
         }
     }
 
+    private suspend fun probeStream(
+        streamUrl: String,
+        site: String
+    ): Boolean {
+        if (isBlocked(streamUrl)) return false
+
+        return try {
+            val response = app.get(
+                streamUrl,
+                headers = mapOf(
+                    "Origin" to site,
+                    "Referer" to "$site/",
+                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+                ),
+                cacheTime = 0
+            )
+
+            val body = response.text.take(8192).lowercase()
+            val cloudflareBlock =
+                response.code == 403 ||
+                response.code == 429 ||
+                response.code == 503 ||
+                "just a moment" in body ||
+                "attention required" in body ||
+                "cloudflare ray id" in body ||
+                "this content has been restricted" in body ||
+                "why have i been blocked?" in body
+
+            if (cloudflareBlock) {
+                markBlocked(streamUrl)
+                false
+            } else {
+                response.code in 200..299 &&
+                    response.text.trimStart().startsWith("#EXTM3U")
+            }
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private suspend fun resolveStream(
+        id: String,
+        force: Boolean
+    ): Pair<Endpoints, String>? {
+        val endpoints = resolveEndpoints(force) ?: return null
+
+        val domain = try {
+            app.get(
+                endpoints.domainUrl,
+                referer = "${endpoints.site}/",
+                cacheTime = 0
+            ).parsedSafe<DomainResponse>()?.baseurl
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+        } catch (_: Throwable) {
+            null
+        } ?: return null
+
+        val baseUrl = if (domain.endsWith("/")) domain else "$domain/"
+        val streamUrl = "${baseUrl}${id}/mono.m3u8"
+
+        return if (probeStream(streamUrl, endpoints.site)) {
+            endpoints to streamUrl
+        } else {
+            null
+        }
+    }
+
     override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val id = Regex("""(?:\?|&)id=([^&]+)""")
-            .find(data)
+        val id = Regex("""(?:\?|&)id=([^&]+)""").find(data)
             ?.groupValues
             ?.getOrNull(1)
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
             ?: return false
 
-        suspend fun buildLink(force: Boolean): Boolean {
-            val endpoints = resolveEndpoints(force) ?: return false
+        var resolved = resolveStream(id, false)
 
-            val domain = try {
-                app.get(
-                    endpoints.domainUrl,
-                    referer = "${endpoints.site}/",
-                    cacheTime = 0
-                ).parsedSafe<DomainResponse>()
-                    ?.baseurl
-                    ?.trim()
-                    ?.takeIf { it.isNotEmpty() }
-            } catch (_: Throwable) {
-                null
-            } ?: return false
-
-            val baseUrl = if (domain.endsWith("/")) domain else "$domain/"
-            val streamUrl = "${baseUrl}${id}/mono.m3u8"
-
-            callback.invoke(
-                newExtractorLink(
-                    source = name,
-                    name = name,
-                    url = streamUrl,
-                    type = ExtractorLinkType.M3U8
-                ) {
-                    referer = "${endpoints.site}/"
-                    headers = mapOf(
-                        "Origin" to endpoints.site,
-                        "Referer" to "${endpoints.site}/"
-                    )
-                    quality = Qualities.Unknown.value
-                }
-            )
-
-            return true
+        if (resolved == null) {
+            cachedEndpoints = null
+            resolved = resolveStream(id, true)
         }
 
-        if (buildLink(false)) return true
+        val (endpoints, streamUrl) = resolved ?: return false
 
-        // Endpoint veya ana site değişmişse cache'i temizleyip bir kez yeniden çöz.
-        cachedEndpoints = null
-        return buildLink(true)
+        callback.invoke(
+            newExtractorLink(
+                source = name,
+                name = name,
+                url = streamUrl,
+                type = ExtractorLinkType.M3U8
+            ) {
+                referer = "${endpoints.site}/"
+                headers = mapOf(
+                    "Origin" to endpoints.site,
+                    "Referer" to "${endpoints.site}/",
+                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+                )
+                quality = Qualities.Unknown.value
+            }
+        )
+
+        return true
     }
 }
