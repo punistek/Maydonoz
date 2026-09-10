@@ -364,52 +364,39 @@ class SPOR2 : MainAPI() {
     private fun extractStreamHost(playerHtml: String): String? {
         // Güncel player JS: window.streamradardomil=[atob("LmUtYWdhLW0u...")]
         val block = Regex(
-            """streamradardomil\\s*=\\s*\\[([^]]+)]""",
+            """streamradardomil\s*=\s*\[([^]]+)]""",
             setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
         ).find(playerHtml)?.groupValues?.getOrNull(1)
 
         val b64 = block?.let {
-            Regex("""atob\\(\\s*[\"']([^\"']+)[\"']\\s*\\)""", RegexOption.IGNORE_CASE)
+            Regex("""atob\(\s*["']([^"']+)["']\s*\)""", RegexOption.IGNORE_CASE)
                 .find(it)?.groupValues?.getOrNull(1)
         }
         val decoded = b64?.let { decodeBase64(it) }?.trim()?.trimStart('.')
-        if (!decoded.isNullOrBlank()) return decoded
+        if (!decoded.isNullOrBlank()) {
+            diag("STREAM_DOMAIN_FOUND", "method=streamradardomil_atob host=$decoded")
+            return decoded
+        }
 
-        // Fallback: player HTML'de e-aga-m hostunu doğrudan ara.
-        return Regex("""(?:https?://)?([A-Za-z0-9.-]*e-aga-m[A-Za-z0-9.-]*\\.(?:sbs|com|net|click))""", RegexOption.IGNORE_CASE)
-            .find(playerHtml)?.groupValues?.getOrNull(1)?.trim()?.trimStart('.')
+        // Fallback: HTML içinde e-aga-m ailesini doğrudan ara.
+        val direct = Regex(
+            """(?:https?://)?([A-Za-z0-9.-]*e-aga-m[A-Za-z0-9.-]*\.(?:sbs|com|net|click))""",
+            RegexOption.IGNORE_CASE
+        ).find(playerHtml)?.groupValues?.getOrNull(1)?.trim()?.trimStart('.')
+        if (!direct.isNullOrBlank()) {
+            diag("STREAM_DOMAIN_FOUND", "method=direct_regex host=$direct")
+        }
+        return direct
     }
 
     private fun extractPathPrefix(playerHtml: String): String {
-        // Sabit değeri hard-code fallback olarak tutuyoruz ama önce JS'den dinamik çıkarıyoruz.
         val fromJs = Regex(
-            """/([a-f0-9]{24,64})/-/[^\"']*?playlist\\.m3u8""",
+            """/([a-f0-9]{24,64})/-/[^"']*?playlist\.m3u8""",
             RegexOption.IGNORE_CASE
         ).find(playerHtml)?.groupValues?.getOrNull(1)
-        return fromJs ?: "bc2b05d321cb80050c5d035a9daeb26d"
-    }
-
-    private fun playerCandidates(state: SiteState, channel: Channel, channelHtml: String): List<String> {
-        val out = linkedSetOf<String>()
-        val doc = Jsoup.parse(channelHtml, channel.url)
-
-        doc.select("iframe[src]").forEach { iframe ->
-            val src = iframe.attr("abs:src").ifBlank { absoluteUrl(channel.url, iframe.attr("src")) }
-            if (src.isNotBlank()) out += src
-        }
-
-        Regex("""https?://[^'\"\\s<>]+(?:\\?[^'\"\\s<>]*)?""", RegexOption.IGNORE_CASE)
-            .findAll(channelHtml).take(80).forEach { m ->
-                val u = m.value.replace("\\/", "/")
-                if ("id=${channel.id}" in u || state.apiDomain?.let { it in u } == true) out += u
-            }
-
-        state.apiDomain?.let { api ->
-            out += "https://${api.trim().trimEnd('/')}/?id=${channel.id}"
-            out += "https://${api.trim().trimEnd('/')}?id=${channel.id}"
-        }
-
-        return out.filter { it.startsWith("http://") || it.startsWith("https://") }
+        val prefix = fromJs ?: "bc2b05d321cb80050c5d035a9daeb26d"
+        diag("STREAM_PREFIX_FOUND", "method=${if (fromJs != null) "html" else "fallback"} prefix=$prefix")
+        return prefix
     }
 
     private fun parseTokenSuffix(json: String): String {
@@ -417,102 +404,103 @@ class SPOR2 : MainAPI() {
             val node = mapper.readTree(json)
             if (node.isArray && node.size() > 5 && !node[5].isNull) node[5].asText("") else ""
         } catch (t: Throwable) {
-            warn("TOKEN_JSON_PARSE_ERROR", "body=${preview(json, 700)}", t)
+            warn("T_JSON_PARSE_ERROR", "body=${preview(json, 700)}", t)
             ""
         }
     }
 
+    private fun matchCenterUrl(site: String, id: String): String =
+        "$site/wp-content/themes/ikisifirbirdokuz/match-center.php?id=$id"
+
+    private fun tHeaders(site: String, matchCenter: String): Map<String, String> = mapOf(
+        "Accept" to "application/json, text/javascript, */*; q=0.01",
+        "Accept-Language" to "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Cache-Control" to "no-cache",
+        "Pragma" to "no-cache",
+        "Referer" to matchCenter,
+        "Sec-CH-UA" to "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+        "Sec-CH-UA-Mobile" to "?0",
+        "Sec-CH-UA-Platform" to "\"Windows\"",
+        "Sec-Fetch-Dest" to "empty",
+        "Sec-Fetch-Mode" to "cors",
+        "Sec-Fetch-Site" to "same-origin",
+        "User-Agent" to desktopUa,
+        "X-Requested-With" to "XMLHttpRequest"
+    )
+
     private suspend fun resolvePlayer(state: SiteState, channel: Channel): PlayerInfo? {
-        diag("CHANNEL_PAGE_BEGIN", "id=${channel.id} GET ${channel.url}")
-        val pageResponse = try {
-            app.get(channel.url, headers = pageHeaders("${state.site}/"), cacheTime = 0)
+        val matchCenter = matchCenterUrl(state.site, channel.id)
+        diag("CHANNEL_ID", "id=${channel.id} title=${channel.title} page=${channel.url}")
+        diag("MATCH_CENTER_URL", "url=${safeUrl(matchCenter)}")
+        diag("MATCH_CENTER_BEGIN", "GET ${safeUrl(matchCenter)} referer=${channel.url}")
+
+        val r = try {
+            app.get(matchCenter, headers = pageHeaders(channel.url), cacheTime = 0)
         } catch (t: Throwable) {
-            warn("CHANNEL_PAGE_ERROR", "url=${channel.url}", t)
+            warn("MATCH_CENTER_ERROR", "url=${safeUrl(matchCenter)}", t)
             return null
         }
-        val channelHtml = pageResponse.text
+        val html = r.text
         diag(
-            "CHANNEL_PAGE_HTTP",
-            "url=${channel.url} code=${pageResponse.code} bytes=${channelHtml.length} diagnosis=${strictDiagnosis(pageResponse.code, channelHtml)} body=${preview(channelHtml, 900)}"
+            "MATCH_CENTER_HTTP",
+            "url=${safeUrl(matchCenter)} code=${r.code} bytes=${html.length} diagnosis=${strictDiagnosis(r.code, html)} body=${preview(html, 1400)}"
         )
-
-        val pageHints = requestHints(channelHtml)
-        diag("CHANNEL_PAGE_HINTS", "count=${pageHints.size} hints=${pageHints.take(25).joinToString(" || ")}")
-
-        val candidates = playerCandidates(state, channel, channelHtml)
-        diag("PLAYER_CANDIDATES", "id=${channel.id} count=${candidates.size} urls=${candidates.take(20).joinToString { safeUrl(it) }}")
-
-        for (candidate0 in candidates) {
-            var candidate = candidate0
-            // iframe sabit bir başka ID taşıyorsa, ana sayfadaki gerçek kanal ID'sini tercih et.
-            if (Regex("[?&]id=\\d+").containsMatchIn(candidate)) {
-                candidate = candidate.replace(Regex("([?&]id=)\\d+"), "$1${channel.id}")
-            }
-            diag("PLAYER_TRY", "id=${channel.id} GET ${safeUrl(candidate)} referer=${channel.url}")
-            try {
-                val r = app.get(candidate, headers = pageHeaders(channel.url), cacheTime = 0)
-                val html = r.text
-                val diagnosis = strictDiagnosis(r.code, html)
-                diag(
-                    "PLAYER_HTTP",
-                    "url=${safeUrl(candidate)} code=${r.code} bytes=${html.length} diagnosis=$diagnosis body=${preview(html, 1200)}"
-                )
-                val hints = requestHints(html)
-                diag("PLAYER_HINTS", "url=${safeUrl(candidate)} hints=${hints.take(30).joinToString(" || ")}")
-
-                if (r.code !in 200..299 || html.isBlank()) continue
-                if (!("streamradardomil" in html || "playlist.m3u8" in html || "mainSource" in html)) {
-                    diag("PLAYER_SIGNATURE_MISS", "url=${safeUrl(candidate)} expected player markers not found")
-                    continue
-                }
-
-                val playerOrigin = originOf(candidate) ?: continue
-                val host = extractStreamHost(html)
-                val prefix = extractPathPrefix(html)
-                diag(
-                    "PLAYER_PARSED",
-                    "playerOrigin=$playerOrigin sourceId=${channel.id} streamHost=${host ?: "NULL"} pathPrefix=$prefix"
-                )
-                if (host.isNullOrBlank()) {
-                    warn("STREAM_HOST_PARSE_FAIL", "Player page found but streamradardomil host could not be decoded")
-                    continue
-                }
-
-                val tokenUrl = "$playerOrigin/t?id=${channel.id}"
-                diag("TOKEN_BEGIN", "GET ${safeUrl(tokenUrl)} referer=${safeUrl(candidate)}")
-                val tokenResponse = try {
-                    app.get(tokenUrl, headers = browserHeaders(state.site) + mapOf("Referer" to candidate), cacheTime = 0)
-                } catch (t: Throwable) {
-                    warn("TOKEN_ERROR", "url=${safeUrl(tokenUrl)}", t)
-                    null
-                }
-
-                val tokenSuffix = if (tokenResponse != null) {
-                    val body = tokenResponse.text
-                    diag(
-                        "TOKEN_HTTP",
-                        "url=${safeUrl(tokenUrl)} code=${tokenResponse.code} bytes=${body.length} diagnosis=${strictDiagnosis(tokenResponse.code, body)} body=${preview(body, 700)}"
-                    )
-                    val suffix = parseTokenSuffix(body)
-                    diag("TOKEN_PARSED", "index=5 present=${suffix.isNotEmpty()} length=${suffix.length}")
-                    suffix
-                } else ""
-
-                return PlayerInfo(
-                    playerUrl = candidate,
-                    playerOrigin = playerOrigin,
-                    sourceId = channel.id,
-                    streamHost = host,
-                    streamPathPrefix = prefix,
-                    tokenSuffix = tokenSuffix
-                )
-            } catch (t: Throwable) {
-                warn("PLAYER_ERROR", "candidate=${safeUrl(candidate)}", t)
-            }
+        if (r.code !in 200..299 || html.isBlank()) {
+            warn("MATCH_CENTER_FAIL", "id=${channel.id} code=${r.code}")
+            return null
         }
 
-        warn("PLAYER_RESOLVE_FAIL", "id=${channel.id} no usable player candidate")
-        return null
+        val hints = requestHints(html)
+        diag("MATCH_CENTER_HINTS", "count=${hints.size} hints=${hints.take(35).joinToString(" || ")}")
+
+        val hasMainSource = "mainSource" in html || "mainsource" in html.lowercase()
+        val hasPlaylist = "playlist.m3u8" in html.lowercase()
+        val hasStreamRadar = "streamradardomil" in html.lowercase()
+        diag(
+            "MATCH_CENTER_SIGNATURE",
+            "mainSource=$hasMainSource playlist=$hasPlaylist streamradardomil=$hasStreamRadar"
+        )
+
+        val host = extractStreamHost(html)
+        val prefix = extractPathPrefix(html)
+        if (host.isNullOrBlank()) {
+            warn("STREAM_DOMAIN_PARSE_FAIL", "match-center loaded but e-aga-m/streamradardomil host was not found")
+            return null
+        }
+
+        val tUrl = "${state.site}/t?id=${channel.id}"
+        diag("T_REQUEST_BEGIN", "GET ${safeUrl(tUrl)} referer=${safeUrl(matchCenter)} xRequestedWith=XMLHttpRequest cookies=NONE")
+        val tr = try {
+            app.get(tUrl, headers = tHeaders(state.site, matchCenter), cacheTime = 0)
+        } catch (t: Throwable) {
+            warn("T_REQUEST_ERROR", "url=${safeUrl(tUrl)}", t)
+            return null
+        }
+        val tBody = tr.text
+        diag(
+            "T_REQUEST_HTTP",
+            "url=${safeUrl(tUrl)} code=${tr.code} bytes=${tBody.length} diagnosis=${strictDiagnosis(tr.code, tBody)} body=${preview(tBody, 900)}"
+        )
+        diag("T_RESPONSE_JSON", "body=${preview(tBody, 900)}")
+        if (tr.code !in 200..299) {
+            warn("T_REQUEST_FAIL", "id=${channel.id} code=${tr.code}; no cookie/challenge replay attempted")
+            return null
+        }
+
+        val suffix = parseTokenSuffix(tBody)
+        diag(
+            "T_SUFFIX_FOUND",
+            "present=${suffix.isNotEmpty()} length=${suffix.length} startsWithQuestion=${suffix.startsWith("?")}"
+        )
+
+        return PlayerInfo(
+            playerUrl = matchCenter,
+            playerOrigin = state.site,
+            sourceId = channel.id,
+            streamHost = host,
+            streamPathPrefix = prefix,
+            tokenSuffix = suffix
+        )
     }
 
     private suspend fun probe(label: String, url: String, headers: Map<String, String>, previewLimit: Int = 1000): ProbeResult {
@@ -540,8 +528,9 @@ class SPOR2 : MainAPI() {
     }
 
     private suspend fun deepDiagnostics(streamUrl: String, site: String): Boolean {
-        val minimal = probe("TEST_MINIMAL", streamUrl, minimalHeaders(site))
-        val browser = probe("TEST_BROWSER_HEADERS", streamUrl, browserHeaders(site))
+        diag("PLAYLIST_BUILT", "url=${safeUrl(streamUrl)}")
+        val minimal = probe("PLAYLIST_MINIMAL", streamUrl, minimalHeaders(site))
+        val browser = probe("PLAYLIST_BROWSER", streamUrl, browserHeaders(site))
         val winner = when {
             browser.ok && !minimal.ok -> "BROWSER_HEADERS"
             browser.ok && minimal.ok -> "BOTH"
@@ -549,30 +538,51 @@ class SPOR2 : MainAPI() {
             else -> "NONE"
         }
         diag(
-            "HEADER_COMPARISON",
+            "PLAYLIST_COMPARE",
             "minimalCode=${minimal.code} minimalHls=${minimal.isHls} browserCode=${browser.code} browserHls=${browser.isHls} winner=$winner"
         )
 
-        val playlist = when {
-            browser.isHls -> browser.body
-            minimal.isHls -> minimal.body
-            else -> ""
+        val playlistResult = when {
+            browser.isHls -> browser
+            minimal.isHls -> minimal
+            else -> null
         }
-        if (playlist.isBlank()) {
+        if (playlistResult == null) {
             warn("PLAYLIST_MISSING", "Neither probe returned #EXTM3U")
             return false
         }
 
-        val media = firstMediaUri(playlist, streamUrl)
-        if (media == null) {
-            warn("FIRST_MEDIA_MISSING", "HLS playlist returned but no media URI was found")
+        val first = firstMediaUri(playlistResult.body, streamUrl)
+        if (first == null) {
+            warn("PLAYLIST_FIRST_URI_MISSING", "HLS playlist returned but no child/media URI was found")
             return true
         }
-        diag("FIRST_MEDIA_FOUND", "url=${safeUrl(media)}")
-        val segMin = probe("SEGMENT_MINIMAL", media, minimalHeaders(site), 180)
-        val segBrowser = probe("SEGMENT_BROWSER_HEADERS", media, browserHeaders(site), 180)
+
+        // Master playlist ise önce chunklist'i aç, sonra gerçek segmenti test et.
+        val firstLooksPlaylist = first.contains(".m3u8", ignoreCase = true)
+        val segmentUrl: String
+        if (firstLooksPlaylist) {
+            diag("CHUNKLIST_FOUND", "url=${safeUrl(first)}")
+            val chunk = probe("CHUNKLIST_BROWSER", first, browserHeaders(site), 1200)
+            if (!chunk.isHls) {
+                warn("CHUNKLIST_FAIL", "code=${chunk.code} url=${safeUrl(first)}")
+                return playlistResult.ok
+            }
+            val segment = firstMediaUri(chunk.body, first)
+            if (segment == null) {
+                warn("SEGMENT_MISSING", "Chunklist returned #EXTM3U but no segment URI was found")
+                return true
+            }
+            segmentUrl = segment
+        } else {
+            segmentUrl = first
+        }
+
+        diag("SEGMENT_FOUND", "url=${safeUrl(segmentUrl)}")
+        val segMin = probe("SEGMENT_MINIMAL", segmentUrl, minimalHeaders(site), 180)
+        val segBrowser = probe("SEGMENT_BROWSER", segmentUrl, browserHeaders(site), 180)
         diag(
-            "SEGMENT_COMPARISON",
+            "SEGMENT_COMPARE",
             "minimalCode=${segMin.code} browserCode=${segBrowser.code} minimalBytes=${segMin.body.length} browserBytes=${segBrowser.body.length}"
         )
         return browser.ok || minimal.ok
