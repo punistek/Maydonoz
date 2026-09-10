@@ -426,41 +426,130 @@ class SPOR1 : MainAPI() {
         }
     }
 
-    private suspend fun probeStream(
+    private data class ProbeResult(
+        val label: String,
+        val code: Int,
+        val isHls: Boolean,
+        val body: String,
+        val ok: Boolean
+    )
+
+    private fun minimalHeaders(site: String): Map<String, String> = mapOf(
+        "Origin" to site,
+        "Referer" to "$site/",
+        "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+    )
+
+    private fun browserHeaders(site: String): Map<String, String> = mapOf(
+        "Accept" to "*/*",
+        "Accept-Language" to "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Cache-Control" to "no-cache",
+        "Pragma" to "no-cache",
+        "Origin" to site,
+        "Referer" to "$site/",
+        "Sec-CH-UA" to "\"Google Chrome\";v=\"153\", \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"153\"",
+        "Sec-CH-UA-Mobile" to "?0",
+        "Sec-CH-UA-Platform" to "\"Windows\"",
+        "Sec-Fetch-Dest" to "empty",
+        "Sec-Fetch-Mode" to "cors",
+        "Sec-Fetch-Site" to "cross-site",
+        "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+    )
+
+    private fun strictCloudflareDiagnosis(code: Int, text: String): String {
+        val t = text.lowercase()
+        val flags = mutableListOf<String>()
+        if (text.trimStart().startsWith("#EXTM3U", ignoreCase = true)) flags += "HLS_PLAYLIST"
+        if (code == 403) flags += "HTTP_403"
+        if (code == 429) flags += "HTTP_429"
+        if (code == 503) flags += "HTTP_503"
+        if ("<title>attention required! | cloudflare</title>" in t) flags += "CF_ATTENTION_REQUIRED"
+        if ("just a moment" in t && "cloudflare" in t) flags += "CF_JUST_A_MOMENT"
+        if ("this content has been restricted" in t && "cloudflare" in t) flags += "CF_CONTENT_RESTRICTED"
+        if ("cloudflare ray id" in t || ("ray id" in t && "cloudflare" in t)) flags += "CF_RAY_ID"
+        if ("/cdn-cgi/" in t && "cloudflare" in t) flags += "CF_ERROR_PAGE"
+        return if (flags.isEmpty()) "NONE" else flags.distinct().joinToString(",")
+    }
+
+    private suspend fun probe(
+        label: String,
+        url: String,
+        headers: Map<String, String>,
+        bodyPreviewLimit: Int = 1200
+    ): ProbeResult {
+        diag("${label}_BEGIN", "GET $url headers=$headers")
+        return try {
+            val response = app.get(url, headers = headers, cacheTime = 0)
+            val text = response.text
+            val isHls = text.trimStart().startsWith("#EXTM3U", ignoreCase = true)
+            val ok = response.code in 200..299 && (isHls || !url.contains(".m3u8", ignoreCase = true))
+            val diagnosis = strictCloudflareDiagnosis(response.code, text)
+            diag(
+                "${label}_HTTP",
+                "url=$url code=${response.code} bytes=${text.length} isHls=$isHls diagnosis=$diagnosis body=${preview(text, bodyPreviewLimit)}"
+            )
+            ProbeResult(label, response.code, isHls, text, ok)
+        } catch (t: Throwable) {
+            warn("${label}_ERROR", "url=$url", t)
+            ProbeResult(label, -1, false, "", false)
+        }
+    }
+
+    private fun firstSegmentFromPlaylist(playlist: String, playlistUrl: String): String? {
+        val first = playlist.lineSequence()
+            .map { it.trim() }
+            .firstOrNull { it.isNotEmpty() && !it.startsWith("#") }
+            ?: return null
+        return try {
+            URI(playlistUrl).resolve(first).toString()
+        } catch (_: Throwable) {
+            first
+        }
+    }
+
+    private suspend fun runDeepStreamDiagnostics(
         streamUrl: String,
         site: String
     ): Boolean {
-        val headers = mapOf(
-            "Origin" to site,
-            "Referer" to "$site/",
-            "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+        val minimal = probe("TEST_MINIMAL", streamUrl, minimalHeaders(site))
+        val browser = probe("TEST_BROWSER_HEADERS", streamUrl, browserHeaders(site))
+
+        diag(
+            "HEADER_COMPARISON",
+            "minimalCode=${minimal.code} minimalHls=${minimal.isHls} browserCode=${browser.code} browserHls=${browser.isHls} winner=" +
+                when {
+                    browser.ok && !minimal.ok -> "BROWSER_HEADERS"
+                    minimal.ok && browser.ok -> "BOTH"
+                    minimal.ok -> "MINIMAL"
+                    else -> "NONE"
+                }
         )
 
-        diag("STREAM_PROBE_BEGIN", "GET $streamUrl headers=$headers")
-        return try {
-            val response = app.get(streamUrl, headers = headers, cacheTime = 0)
-            val text = response.text
-            val isHls = text.trimStart().startsWith("#EXTM3U")
-            val diagnosis = bodyDiagnosis(text)
-            diag(
-                "STREAM_PROBE_HTTP",
-                "url=$streamUrl code=${response.code} bytes=${text.length} isHls=$isHls diagnosis=$diagnosis body=${preview(text, 1200)}"
-            )
+        val playlist = when {
+            browser.isHls -> browser.body
+            minimal.isHls -> minimal.body
+            else -> ""
+        }
 
-            val ok = response.code in 200..299 && isHls
-            if (!ok) {
-                warn(
-                    "STREAM_PROBE_FAIL",
-                    "url=$streamUrl code=${response.code} isHls=$isHls diagnosis=$diagnosis. This is the exact stage preventing playback."
+        if (playlist.isNotBlank()) {
+            val segmentUrl = firstSegmentFromPlaylist(playlist, streamUrl)
+            if (segmentUrl != null) {
+                diag("FIRST_SEGMENT_FOUND", "url=$segmentUrl")
+                val segMinimal = probe("SEGMENT_MINIMAL", segmentUrl, minimalHeaders(site), 220)
+                val segBrowser = probe("SEGMENT_BROWSER_HEADERS", segmentUrl, browserHeaders(site), 220)
+                diag(
+                    "SEGMENT_COMPARISON",
+                    "minimalCode=${segMinimal.code} browserCode=${segBrowser.code} " +
+                        "minimalBytes=${segMinimal.body.length} browserBytes=${segBrowser.body.length}"
                 )
             } else {
-                diag("STREAM_PROBE_OK", "url=$streamUrl")
+                warn("FIRST_SEGMENT_MISSING", "Playlist was HLS but no media URI could be extracted")
             }
-            ok
-        } catch (t: Throwable) {
-            warn("STREAM_PROBE_ERROR", "url=$streamUrl", t)
-            false
+        } else {
+            warn("FIRST_SEGMENT_SKIPPED", "No HLS playlist body was returned by either probe")
         }
+
+        return browser.ok || minimal.ok
     }
 
     private suspend fun resolveStream(
@@ -499,7 +588,7 @@ class SPOR1 : MainAPI() {
         val streamUrl = "${baseUrl}${id}/mono.m3u8"
         diag("STREAM_URL_BUILT", "id=$id baseUrl=$baseUrl streamUrl=$streamUrl")
 
-        val probeOk = probeStream(streamUrl, endpoints.site)
+        val probeOk = runDeepStreamDiagnostics(streamUrl, endpoints.site)
         diag("STREAM_RESOLVE_RESULT", "id=$id probeOk=$probeOk streamUrl=$streamUrl")
 
         // Tanılama sürümünde probe başarısız olsa bile gerçek URL player'a gönderilir.
@@ -541,11 +630,7 @@ class SPOR1 : MainAPI() {
         }
 
         val (endpoints, streamUrl) = resolved
-        val playerHeaders = mapOf(
-            "Origin" to endpoints.site,
-            "Referer" to "${endpoints.site}/",
-            "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
-        )
+        val playerHeaders = browserHeaders(endpoints.site)
 
         diag(
             "CALLBACK_SEND",
