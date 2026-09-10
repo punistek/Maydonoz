@@ -3,6 +3,7 @@ package com.keyiflerolsun
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
 import org.jsoup.nodes.Element
+import org.json.JSONObject
 
 class FullHDFilmizle : MainAPI() {
     override var mainUrl = "https://fullhdfilmizle.now"
@@ -104,33 +105,221 @@ class FullHDFilmizle : MainAPI() {
     ): Boolean {
         println("FHD_DIAG LOAD_LINKS detail=$data")
 
-        val detail = app.get(data, headers = headers())
-        println("FHD_DIAG DETAIL status=${detail.code} final=${detail.url}")
-
-        val doc = detail.document
-        val frames = doc.select("iframe[src]").map { fixUrl(it.attr("src")) }.distinct()
-        println("FHD_DIAG IFRAMES count=${frames.size}")
-
-        frames.forEachIndexed { index, frame ->
-            println("FHD_DIAG IFRAME[$index]=$frame")
-        }
-
-        val vidMixi = frames.firstOrNull {
-            runCatching { java.net.URI(it).host?.contains("vidmixi.com", ignoreCase = true) == true }
-                .getOrDefault(false)
-        }
-
-        if (vidMixi == null) {
-            println("FHD_DIAG FAIL stage=DETAIL reason=VIDMIXI_IFRAME_NOT_FOUND")
+        /*
+         * Gerçek site akışı:
+         *
+         * detail GET
+         *   -> .vp-face[data-src-type][data-src-id][data-src-token]
+         *   -> GET /api/token
+         *   -> POST /api/view
+         *   -> JSON embed=https://vidmixi.com/embed/...
+         *   -> VidMixi ExtractorApi
+         *
+         * Bu provider artık iframe veya WebView aramaz.
+         */
+        val detail = try {
+            app.get(
+                data,
+                headers = headers()
+            )
+        } catch (t: Throwable) {
+            println(
+                "FHD_DIAG FAIL stage=DETAIL_GET " +
+                    "type=${t.javaClass.simpleName} msg=${t.message}"
+            )
             return false
         }
 
-        println("FHD_DIAG VIDMIXI_HANDOFF url=$vidMixi")
-        return loadExtractor(
-            url = vidMixi,
-            referer = data,
-            subtitleCallback = subtitleCallback,
-            callback = callback
+        println(
+            "FHD_DIAG DETAIL " +
+                "status=${detail.code} final=${detail.url} chars=${detail.text.length}"
         )
+
+        val doc = detail.document
+        val playButton = doc.selectFirst(
+            ".vp-face[data-src-type][data-src-id][data-src-token]"
+        )
+
+        if (playButton == null) {
+            println(
+                "FHD_DIAG FAIL stage=DETAIL " +
+                    "reason=PLAYER_BUTTON_NOT_FOUND"
+            )
+            return false
+        }
+
+        val sourceType = playButton.attr("data-src-type").trim()
+        val sourceId = playButton.attr("data-src-id").trim()
+        val sourceKey = playButton.attr("data-src-token").trim()
+
+        println(
+            "FHD_DIAG PLAYER_DATA " +
+                "type=$sourceType id=$sourceId " +
+                "keyLen=${sourceKey.length} keyPrefix=${sourceKey.take(8)}"
+        )
+
+        if (
+            sourceType.isBlank() ||
+            sourceId.isBlank() ||
+            sourceKey.isBlank()
+        ) {
+            println(
+                "FHD_DIAG FAIL stage=DETAIL " +
+                    "reason=PLAYER_DATA_EMPTY"
+            )
+            return false
+        }
+
+        val ajaxHeaders = mapOf(
+            "User-Agent" to ua,
+            "Accept" to "*/*",
+            "Accept-Language" to "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+            "X-Requested-With" to "XMLHttpRequest",
+            "Cache-Control" to "no-cache",
+            "Pragma" to "no-cache"
+        )
+
+        /*
+         * /api/token aynı app client üzerinden çağrılıyor.
+         * Böylece site detail isteğinde oluşan session/cookie zinciri korunur.
+         */
+        val tokenResponse = try {
+            app.get(
+                "$mainUrl/api/token",
+                referer = data,
+                headers = ajaxHeaders
+            )
+        } catch (t: Throwable) {
+            println(
+                "FHD_DIAG FAIL stage=TOKEN_GET " +
+                    "type=${t.javaClass.simpleName} msg=${t.message}"
+            )
+            return false
+        }
+
+        println(
+            "FHD_DIAG TOKEN_RESPONSE " +
+                "status=${tokenResponse.code} " +
+                "contentType=${tokenResponse.headers["content-type"] ?: ""} " +
+                "chars=${tokenResponse.text.length}"
+        )
+
+        val csrfToken = try {
+            JSONObject(tokenResponse.text)
+                .optString("token")
+                .trim()
+        } catch (t: Throwable) {
+            println(
+                "FHD_DIAG FAIL stage=TOKEN_PARSE " +
+                    "type=${t.javaClass.simpleName} msg=${t.message} " +
+                    "body=${tokenResponse.text.take(240)}"
+            )
+            return false
+        }
+
+        if (csrfToken.isBlank()) {
+            println(
+                "FHD_DIAG FAIL stage=TOKEN_PARSE " +
+                    "reason=TOKEN_EMPTY body=${tokenResponse.text.take(240)}"
+            )
+            return false
+        }
+
+        println(
+            "FHD_DIAG TOKEN_OK " +
+                "len=${csrfToken.length} prefix=${csrfToken.take(8)}"
+        )
+
+        val viewHeaders = ajaxHeaders + mapOf(
+            "Origin" to mainUrl,
+            "Content-Type" to "application/x-www-form-urlencoded"
+        )
+
+        val viewResponse = try {
+            app.post(
+                "$mainUrl/api/view",
+                referer = data,
+                headers = viewHeaders,
+                data = mapOf(
+                    "t" to sourceType,
+                    "i" to sourceId,
+                    "k" to sourceKey,
+                    "csrf_token" to csrfToken
+                )
+            )
+        } catch (t: Throwable) {
+            println(
+                "FHD_DIAG FAIL stage=VIEW_POST " +
+                    "type=${t.javaClass.simpleName} msg=${t.message}"
+            )
+            return false
+        }
+
+        println(
+            "FHD_DIAG VIEW_RESPONSE " +
+                "status=${viewResponse.code} " +
+                "contentType=${viewResponse.headers["content-type"] ?: ""} " +
+                "chars=${viewResponse.text.length}"
+        )
+
+        val viewJson = try {
+            JSONObject(viewResponse.text)
+        } catch (t: Throwable) {
+            println(
+                "FHD_DIAG FAIL stage=VIEW_PARSE " +
+                    "type=${t.javaClass.simpleName} msg=${t.message} " +
+                    "body=${viewResponse.text.take(320)}"
+            )
+            return false
+        }
+
+        val ok = viewJson.optBoolean("ok", false)
+        val embed = viewJson.optString("embed").trim()
+
+        println(
+            "FHD_DIAG VIEW_JSON " +
+                "ok=$ok embed=$embed"
+        )
+
+        if (!ok || embed.isBlank()) {
+            println(
+                "FHD_DIAG FAIL stage=VIEW_JSON " +
+                    "reason=EMBED_MISSING body=${viewResponse.text.take(320)}"
+            )
+            return false
+        }
+
+        val isVidMixi = runCatching {
+            java.net.URI(embed)
+                .host
+                ?.contains("vidmixi.com", ignoreCase = true) == true
+        }.getOrDefault(false)
+
+        if (!isVidMixi) {
+            println(
+                "FHD_DIAG FAIL stage=VIEW_JSON " +
+                    "reason=UNEXPECTED_EMBED_HOST embed=$embed"
+            )
+            return false
+        }
+
+        println("FHD_DIAG VIDMIXI_HANDOFF url=$embed")
+
+        return try {
+            val handled = loadExtractor(
+                url = embed,
+                referer = data,
+                subtitleCallback = subtitleCallback,
+                callback = callback
+            )
+            println("FHD_DIAG EXTRACTOR_DONE handled=$handled")
+            handled
+        } catch (t: Throwable) {
+            println(
+                "FHD_DIAG FAIL stage=VIDMIXI_EXTRACTOR " +
+                    "type=${t.javaClass.simpleName} msg=${t.message}"
+            )
+            false
+        }
     }
 }
