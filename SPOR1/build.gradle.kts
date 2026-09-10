@@ -1,7 +1,7 @@
-version = 3
+version = 4
 
 cloudstream {
-    description = "SPOR1 - dinamik alan adı destekli canlı spor kanalları"
+    description = "SPOR1 - nokta atışı tanılama loglu canlı spor kanalları"
     authors = listOf("PARS")
     language = "tr"
     status = 1
