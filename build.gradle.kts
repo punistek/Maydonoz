@@ -38,7 +38,9 @@ fun Project.android(configuration: LibraryExtension.() -> Unit) =
     extensions.configure("android", configuration)
 
 val turkSporModules = setOf(
-    "ArdaSpor", "SelcukSports"
+    "ArdaSpor",
+    "MahsunSports",
+    "SelcukSports"
 )
 
 val turkSporSharedModules = emptySet<String>()
