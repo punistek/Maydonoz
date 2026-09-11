@@ -340,7 +340,7 @@ class JetFilmizle : MainAPI() {
         val trace = traceId()
 
         Log.i(tag, "[$trace] ========================================")
-        Log.i(tag, "[$trace] V6 LOAD_LINKS START")
+        Log.i(tag, "[$trace] V7 LOAD_LINKS START")
         Log.i(tag, "[$trace] DETAIL_URL=$data")
         Log.i(tag, "[$trace] isCasting=$isCasting")
 
@@ -405,18 +405,18 @@ class JetFilmizle : MainAPI() {
                 compareBy<PlayerSource> {
                     when {
                         it.name.equals("OPlay", ignoreCase = true) -> 0
-                        it.name.equals("JetGlobal", ignoreCase = true) -> 1
-                        it.name.equals("Multi", ignoreCase = true) -> 2
-                        else -> 3
+                        it.name.equals("Vidara", ignoreCase = true) -> 1
+                        it.name.equals("JetGlobal", ignoreCase = true) -> 2
+                        it.name.equals("Multi", ignoreCase = true) -> 3
+                        else -> 4
                     }
                 }.thenBy { it.playerType }
                     .thenBy { it.index.toIntOrNull() ?: Int.MAX_VALUE }
             )
 
-            var emittedAny = false
             val visitedIframes = linkedSetOf<String>()
 
-            orderedSources.forEachIndexed { sourceOrdinal, source ->
+            for ((sourceOrdinal, source) in orderedSources.withIndex()) {
                 Log.i(
                     tag,
                     "[$trace] SOURCE_TRY[$sourceOrdinal] name='${source.name}' type='${source.playerType}' index='${source.index}'"
@@ -435,16 +435,16 @@ class JetFilmizle : MainAPI() {
                         tag,
                         "[$trace] SOURCE_TRY[$sourceOrdinal] iframe YOK"
                     )
-                    return@forEachIndexed
+                    continue
                 }
 
-                iframes.forEachIndexed iframeLoop@ { iframeOrdinal, iframeUrl ->
+                for ((iframeOrdinal, iframeUrl) in iframes.withIndex()) {
                     if (!visitedIframes.add(iframeUrl)) {
                         Log.d(
                             tag,
                             "[$trace] IFRAME_SKIP duplicate url=${safeUrlForLog(iframeUrl)}"
                         )
-                        return@iframeLoop
+                        continue
                     }
 
                     val result = resolveRealIframe(
@@ -457,21 +457,33 @@ class JetFilmizle : MainAPI() {
                         callback = callback
                     )
 
-                    emittedAny = result || emittedAny
+                    if (result) {
+                        Log.i(
+                            tag,
+                            "[$trace] V7 FIRST_WORKING_SOURCE source='${source.name}' type='${source.playerType}' index='${source.index}'"
+                        )
+                        Log.i(
+                            tag,
+                            "[$trace] V7 LOAD_LINKS END emittedAny=true uniqueIframes=${visitedIframes.size}"
+                        )
+                        Log.i(tag, "[$trace] ========================================")
+                        return true
+                    }
                 }
             }
 
             Log.i(
                 tag,
-                "[$trace] V6 LOAD_LINKS END emittedAny=$emittedAny uniqueIframes=${visitedIframes.size}"
+                "[$trace] V7 LOAD_LINKS END emittedAny=false uniqueIframes=${visitedIframes.size}"
             )
+
             Log.i(tag, "[$trace] ========================================")
 
-            emittedAny
+            false
         } catch (t: Throwable) {
             Log.e(
                 tag,
-                "[$trace] V6 LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
+                "[$trace] V7 LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
                 t
             )
             false
@@ -591,37 +603,53 @@ class JetFilmizle : MainAPI() {
             "[$trace] RESOLVE_IFRAME[$iframeOrdinal] source='${source.name}' type='${source.playerType}' host='$host' url='${safeUrlForLog(iframeUrl)}'"
         )
 
-        // Bu host/path zinciri önceki testlerde doğrudan doğrulandı.
+        var emittedCount = 0
+
+        val countingCallback: (ExtractorLink) -> Unit = { link ->
+            emittedCount += 1
+            Log.i(
+                tag,
+                "[$trace] REAL_LINK_CALLBACK[$emittedCount] source='${source.name}' host='$host' url='${safeUrlForLog(link.url)}'"
+            )
+            callback(link)
+        }
+
+        // OPlay VideoPark yolu daha önce doğrudan doğrulandı.
         if (host == "videopark.top" || host.endsWith(".videopark.top")) {
-            val videoParkResult = VideoPark.resolve(
+            val videoParkReported = VideoPark.resolve(
                 embedUrl = iframeUrl,
                 pageReferer = detailUrl,
                 playerLabel = "${source.name}/${source.playerType}",
                 trace = trace,
                 subtitleCallback = subtitleCallback,
-                callback = callback
+                callback = countingCallback
             )
 
-            if (videoParkResult) {
+            Log.i(
+                tag,
+                "[$trace] VIDEOPARK_RESULT reported=$videoParkReported emitted=$emittedCount source='${source.name}'"
+            )
+
+            // KRİTİK: resolver "true" dese bile callback gelmediyse başarılı sayma.
+            if (emittedCount > 0) {
                 Log.i(
                     tag,
-                    "[$trace] RESOLVE_IFRAME VideoPark OK source='${source.name}'"
+                    "[$trace] RESOLVE_IFRAME VideoPark OK source='${source.name}' emitted=$emittedCount"
                 )
                 return true
             }
 
             Log.w(
                 tag,
-                "[$trace] RESOLVE_IFRAME VideoPark parser sonuc vermedi; CloudStream extractor fallback deneniyor."
+                "[$trace] RESOLVE_IFRAME VideoPark callback=0; generic extractor deneniyor."
             )
         }
 
-        // Collector logunda gerçekten görülen iframe hostları.
-        // Burada URL uydurmuyoruz; /jetplayer'ın döndürdüğü gerçek iframe URL'sini
-        // CloudStream'in mevcut extractor sistemine veriyoruz.
         val knownCollectedHost =
             host == "vidmoly.net" ||
                 host.endsWith(".vidmoly.net") ||
+                host == "vidmoly.biz" ||
+                host.endsWith(".vidmoly.biz") ||
                 host == "streamhls.to" ||
                 host.endsWith(".streamhls.to") ||
                 host == "player.abyssplayer.com" ||
@@ -642,24 +670,29 @@ class JetFilmizle : MainAPI() {
         if (!knownCollectedHost) {
             Log.w(
                 tag,
-                "[$trace] RESOLVE_IFRAME bilinmeyen host='$host'. Gercek iframe oldugu icin generic extractor bir kez deneniyor."
+                "[$trace] RESOLVE_IFRAME bilinmeyen host='$host'. Generic extractor bir kez deneniyor."
             )
         }
 
         return try {
-            val result = loadExtractor(
+            val before = emittedCount
+
+            val reported = loadExtractor(
                 iframeUrl,
                 detailUrl,
                 subtitleCallback,
-                callback
+                countingCallback
             )
+
+            val genericEmitted = emittedCount - before
 
             Log.i(
                 tag,
-                "[$trace] GENERIC_EXTRACTOR host='$host' result=$result source='${source.name}'"
+                "[$trace] GENERIC_EXTRACTOR host='$host' reported=$reported emitted=$genericEmitted source='${source.name}'"
             )
 
-            result
+            // KRİTİK: loadExtractor true dönebilir ama 0 link callback verebilir.
+            genericEmitted > 0
         } catch (t: Throwable) {
             Log.e(
                 tag,
@@ -668,6 +701,7 @@ class JetFilmizle : MainAPI() {
             false
         }
     }
+
 
     private fun hostOf(url: String): String {
         return try {
