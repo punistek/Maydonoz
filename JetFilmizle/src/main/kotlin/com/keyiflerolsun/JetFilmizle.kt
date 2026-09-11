@@ -384,48 +384,60 @@ class JetFilmizle : MainAPI() {
                 return false
             }
 
-            val playerTypes = linkedSetOf<String>()
+            val sources = discoverPlayerSources(
+                trace = trace,
+                doc = doc
+            )
 
-            doc.select(
-                ".player-source-btn[data-player-type][data-source-index]"
-            ).forEach { button ->
-                val type = button.attr("data-player-type").trim()
-                val index = button.attr("data-source-index").trim()
-                val text = button.text().trim()
+            Log.i(
+                tag,
+                "[$trace] [3/6] discoveredSources=${sources.size}"
+            )
 
-                Log.d(
+            if (sources.isEmpty()) {
+                Log.e(
                     tag,
-                    "[$trace] SOURCE_BUTTON type=$type index=$index text='$text'"
+                    "[$trace] [3/6] HICBIR PLAYER SOURCE BULUNAMADI - sabit index fallback KULLANILMADI"
                 )
-
-                // OPlay index=1. Kullanıcı tarafından Network ile doğrulandı.
-                if (index == "1" && type.isNotBlank()) {
-                    playerTypes += type
-                }
+                return false
             }
 
-            // Selector değişmiş olsa da doğrulanmış dublaj yolunu kaybetme.
-            if (playerTypes.isEmpty()) {
-                Log.w(
-                    tag,
-                    "[$trace] OPlay button selector bulunamadı -> dublaj fallback"
-                )
-                playerTypes += "dublaj"
+            // Önce OPlay. OPlay yoksa şu an bilmediğimiz resolver'a körlemesine
+            // gitmiyoruz; logda gerçek kaynakları görüyoruz ve sonraki resolver'ı
+            // kanıtla ekliyoruz.
+            val oplaySources = sources.filter {
+                it.name.contains("oplay", ignoreCase = true) ||
+                    it.name.contains("o play", ignoreCase = true) ||
+                    it.raw.contains("/oplayer/", ignoreCase = true)
             }
 
             Log.i(
                 tag,
-                "[$trace] [3/6] OPlay playerTypes=$playerTypes"
+                "[$trace] [3/6] oplaySources=${oplaySources.size}"
             )
+
+            if (oplaySources.isEmpty()) {
+                Log.e(
+                    tag,
+                    "[$trace] [3/6] BU FILMDE OPLAY BULUNAMADI. Mevcut kaynaklar=${sources.joinToString { "${it.name}[${it.playerType}:${it.index}]" }}"
+                )
+                return false
+            }
 
             var emittedAny = false
 
-            playerTypes.forEach { playerType ->
+            oplaySources.forEach { source ->
+                Log.i(
+                    tag,
+                    "[$trace] [3/6] OPLAY SECILDI name='${source.name}' type=${source.playerType} index=${source.index}"
+                )
+
                 val emitted = resolveOPlay(
                     trace = trace,
                     detailUrl = data,
                     filmId = filmId,
-                    playerType = playerType,
+                    sourceIndex = source.index,
+                    playerType = source.playerType,
                     subtitleCallback = subtitleCallback,
                     callback = callback
                 )
@@ -454,6 +466,7 @@ class JetFilmizle : MainAPI() {
         trace: String,
         detailUrl: String,
         filmId: String,
+        sourceIndex: String,
         playerType: String,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
@@ -462,7 +475,7 @@ class JetFilmizle : MainAPI() {
 
         Log.i(
             tag,
-            "[$trace] [4/6] JETPLAYER POST type=$playerType filmId=$filmId sourceIndex=1"
+            "[$trace] [4/6] JETPLAYER POST type=$playerType filmId=$filmId sourceIndex=$sourceIndex"
         )
 
         val postResponse = app.post(
@@ -476,7 +489,7 @@ class JetFilmizle : MainAPI() {
             ),
             data = mapOf(
                 "film_id" to filmId,
-                "source_index" to "1",
+                "source_index" to sourceIndex,
                 "player_type" to playerType
             ),
             interceptor = cloudflareInterceptor
@@ -559,6 +572,157 @@ class JetFilmizle : MainAPI() {
         )
 
         return result
+    }
+
+
+    private data class PlayerSource(
+        val name: String,
+        val index: String,
+        val playerType: String,
+        val raw: String
+    )
+
+    /**
+     * Kaynakları tek bir CSS class adına bağlamıyoruz.
+     * Site class adını değiştirse bile data-source-index / data-player-type
+     * taşıyan elemanları ve yakın ebeveynlerini tarıyoruz.
+     *
+     * Önemli: source_index artık ASLA sabit 1 kabul edilmiyor.
+     */
+    private fun discoverPlayerSources(
+        trace: String,
+        doc: org.jsoup.nodes.Document
+    ): List<PlayerSource> {
+        val found = linkedMapOf<String, PlayerSource>()
+
+        val selectors = listOf(
+            "[data-source-index]",
+            "[data-player-type][data-source-index]",
+            ".player-source-btn",
+            "button[data-source-index]",
+            "a[data-source-index]"
+        )
+
+        selectors.forEach { selector ->
+            val elements = doc.select(selector)
+
+            Log.d(
+                tag,
+                "[$trace] SOURCE_SCAN selector='$selector' count=${elements.size}"
+            )
+
+            elements.forEachIndexed { i, el ->
+                val index = el.attr("data-source-index").trim()
+                    .ifBlank {
+                        el.parent()?.attr("data-source-index")?.trim().orEmpty()
+                    }
+
+                val playerType = el.attr("data-player-type").trim()
+                    .ifBlank {
+                        el.parent()?.attr("data-player-type")?.trim().orEmpty()
+                    }
+
+                val textCandidates = listOf(
+                    el.attr("data-source-name"),
+                    el.attr("data-name"),
+                    el.attr("title"),
+                    el.attr("aria-label"),
+                    el.text(),
+                    el.parent()?.text().orEmpty()
+                )
+
+                val name = textCandidates
+                    .map { it.trim() }
+                    .firstOrNull { it.isNotBlank() }
+                    .orEmpty()
+
+                val raw = buildString {
+                    append(el.outerHtml())
+                    append(" ")
+                    append(el.parent()?.outerHtml().orEmpty())
+                }
+
+                Log.d(
+                    tag,
+                    "[$trace] SOURCE_RAW selector='$selector' i=$i index='$index' type='$playerType' name='$name' html=${safeTextForLog(raw, 650)}"
+                )
+
+                if (index.isBlank() || playerType.isBlank()) {
+                    return@forEachIndexed
+                }
+
+                val normalizedName = when {
+                    name.contains("oplay", true) -> "OPlay"
+                    name.contains("o play", true) -> "OPlay"
+                    raw.contains("/oplayer/", true) -> "OPlay"
+                    name.contains("vip", true) -> "Vip"
+                    name.contains("okru", true) ||
+                        name.contains("ok.ru", true) -> "OkRu"
+                    name.contains("stape", true) ||
+                        name.contains("streamtape", true) -> "STape"
+                    name.contains("streamhls", true) ||
+                        name.contains("stream hls", true) -> "StreamHLS"
+                    else -> name.ifBlank { "Unknown" }
+                }
+
+                val key = "$playerType|$index|$normalizedName"
+
+                found.putIfAbsent(
+                    key,
+                    PlayerSource(
+                        name = normalizedName,
+                        index = index,
+                        playerType = playerType,
+                        raw = raw
+                    )
+                )
+            }
+        }
+
+        // Bazı sürümlerde buton bilgileri HTML elementinde değil script/string içinde
+        // olabilir. Bu durumda kanıt amaçlı ilgili satırları logla; uydurma index üretme.
+        if (found.isEmpty()) {
+            doc.select("script").forEachIndexed { i, script ->
+                val body = script.data().ifBlank { script.html() }
+
+                if (
+                    body.contains("source_index", true) ||
+                    body.contains("data-source-index", true) ||
+                    body.contains("oplay", true)
+                ) {
+                    Log.w(
+                        tag,
+                        "[$trace] SOURCE_SCRIPT_HINT i=$i ${safeTextForLog(body, 1000)}"
+                    )
+                }
+            }
+        }
+
+        found.values.forEachIndexed { i, source ->
+            Log.i(
+                tag,
+                "[$trace] SOURCE[$i] name='${source.name}' type='${source.playerType}' index='${source.index}'"
+            )
+        }
+
+        return found.values.toList()
+    }
+
+    private fun safeTextForLog(
+        text: String,
+        max: Int
+    ): String {
+        val cleaned = text
+            .replace("\r", " ")
+            .replace("\n", " ")
+            .replace(Regex("""\s+"""), " ")
+            .trim()
+
+        return if (cleaned.length > max) {
+            cleaned.take(max) + "...[len=${cleaned.length}]"
+        } else {
+            cleaned
+        }
     }
 
     private fun isHardCloudflareBlock(html: String): Boolean {
