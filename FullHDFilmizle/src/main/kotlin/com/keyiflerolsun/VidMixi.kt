@@ -3,6 +3,7 @@ package com.keyiflerolsun
 import com.lagradost.cloudstream3.SubtitleFile
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.*
+import kotlinx.coroutines.delay
 import org.json.JSONObject
 import java.security.MessageDigest
 import javax.crypto.Cipher
@@ -20,11 +21,6 @@ class VidMixi : ExtractorApi() {
 
     private data class KeyIv(val key: ByteArray, val iv: ByteArray)
 
-    /*
-     * CryptoJS.AES.decrypt(cipherParams, passphrase) uses the OpenSSL
-     * passphrase KDF. CryptoJS' default KDF derives AES-256 key + 16-byte IV
-     * with EVP_BytesToKey-compatible MD5 chaining.
-     */
     private fun evpBytesToKey(
         passphrase: ByteArray,
         salt: ByteArray,
@@ -69,12 +65,6 @@ class VidMixi : ExtractorApi() {
             salt = salt
         )
 
-        /*
-         * Important: with CryptoJS passphrase mode the formatter's "iv"
-         * field is serialized, but OpenSSLKdf derives the actual key/IV from
-         * passphrase + salt. This mirrors CryptoJS.AES.decrypt(set, hash,
-         * {format: settings}) used by beload.php.
-         */
         val cipherBytes = Base64.getDecoder().decode(ct)
         val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
         cipher.init(
@@ -102,13 +92,6 @@ class VidMixi : ExtractorApi() {
         }
     }
 
-    /*
-     * Captures:
-     *   bePlayer('HASH', '{"ct":"...","iv":"...","s":"..."}')
-     *
-     * The encrypted JSON can contain escaped slashes, so DOT_MATCHES_ALL is
-     * used and the second argument is captured non-greedily.
-     */
     private fun extractBePlayer(html: String): Pair<String, String>? {
         val rx = Regex(
             """bePlayer\s*\(\s*(['"])(.*?)\1\s*,\s*(['"])(\{.*?\})\3\s*(?:,\s*[^)]*)?\)""",
@@ -117,8 +100,7 @@ class VidMixi : ExtractorApi() {
 
         val match = rx.find(html) ?: return null
         val hash = match.groupValues[2].trim()
-        val encrypted = match.groupValues[4]
-            .replace("\\/", "/")
+        val encrypted = match.groupValues[4].replace("\\/", "/")
 
         if (hash.isBlank() || encrypted.isBlank()) return null
         return hash to encrypted
@@ -141,17 +123,62 @@ class VidMixi : ExtractorApi() {
             "Pragma" to "no-cache"
         )
 
-        val embed = runCatching {
-            app.get(
-                url,
-                headers = embedHeaders,
-                referer = detailReferer
-            )
-        }.getOrElse {
+        var embed = runCatching {
+            val started = System.currentTimeMillis()
+            println("VIDMIXI_DIAG EMBED_ATTEMPT n=1")
+            val r = app.get(url, headers = embedHeaders, referer = detailReferer)
             println(
-                "VIDMIXI_DIAG FAIL stage=EMBED " +
+                "VIDMIXI_DIAG EMBED_ATTEMPT_OK n=1 " +
+                    "ms=${System.currentTimeMillis() - started} status=${r.code}"
+            )
+            r
+        }.onFailure {
+            println(
+                "VIDMIXI_DIAG EMBED_ATTEMPT_FAIL n=1 " +
                     "exception=${it::class.simpleName} message=${it.message}"
             )
+        }.getOrNull()
+
+        if (embed == null) {
+            delay(900)
+            embed = runCatching {
+                val started = System.currentTimeMillis()
+                println("VIDMIXI_DIAG EMBED_ATTEMPT n=2")
+                val r = app.get(url, headers = embedHeaders, referer = detailReferer)
+                println(
+                    "VIDMIXI_DIAG EMBED_ATTEMPT_OK n=2 " +
+                        "ms=${System.currentTimeMillis() - started} status=${r.code}"
+                )
+                r
+            }.onFailure {
+                println(
+                    "VIDMIXI_DIAG EMBED_ATTEMPT_FAIL n=2 " +
+                        "exception=${it::class.simpleName} message=${it.message}"
+                )
+            }.getOrNull()
+        }
+
+        if (embed == null) {
+            delay(1500)
+            embed = runCatching {
+                val started = System.currentTimeMillis()
+                println("VIDMIXI_DIAG EMBED_ATTEMPT n=3")
+                val r = app.get(url, headers = embedHeaders, referer = detailReferer)
+                println(
+                    "VIDMIXI_DIAG EMBED_ATTEMPT_OK n=3 " +
+                        "ms=${System.currentTimeMillis() - started} status=${r.code}"
+                )
+                r
+            }.onFailure {
+                println(
+                    "VIDMIXI_DIAG EMBED_ATTEMPT_FAIL n=3 " +
+                        "exception=${it::class.simpleName} message=${it.message}"
+                )
+            }.getOrNull()
+        }
+
+        if (embed == null) {
+            println("VIDMIXI_DIAG FAIL stage=EMBED reason=ALL_ATTEMPTS_FAILED")
             return
         }
 
@@ -229,10 +256,6 @@ class VidMixi : ExtractorApi() {
             "Referer" to "$mainUrl/"
         )
 
-        /*
-         * Validate that the decrypted location is actually an HLS playlist
-         * before handing it to the host player.
-         */
         val playlist = runCatching {
             app.get(
                 hlsUrl,
