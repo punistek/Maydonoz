@@ -120,7 +120,7 @@ class FilmMakinesi : MainAPI() {
 
             Log.d(
                 "FILMMAKINESI",
-                "CARD title=$title poster=${poster ?: "NONE"}"
+                "CARD title=$title poster=${poster ?: "NONE"} posterHost=${poster?.let { runCatching { java.net.URI(it).host }.getOrNull() }}"
             )
 
             val year = a.selectFirst(".item-footer .info span")
