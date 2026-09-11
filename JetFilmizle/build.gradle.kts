@@ -1,9 +1,9 @@
-version = 9
+version = 10
 
 cloudstream {
     authors     = listOf("PARS")
     language    = "tr"
-    description = "JetFilmizle V9 - VidMoly fix, HLS kaynak onceligi, turler"
+    description = "JetFilmizle V10 - JetGlobal 12 kaynak + YouTube source destegi"
 
     status  = 1
     tvTypes = listOf("Movie")

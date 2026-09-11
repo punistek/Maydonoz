@@ -356,7 +356,7 @@ class JetFilmizle : MainAPI() {
         val trace = traceId()
 
         Log.i(tag, "[$trace] ========================================")
-        Log.i(tag, "[$trace] V9 LOAD_LINKS START")
+        Log.i(tag, "[$trace] V10 LOAD_LINKS START")
         Log.i(tag, "[$trace] DETAIL_URL=$data")
         Log.i(tag, "[$trace] isCasting=$isCasting")
 
@@ -485,11 +485,11 @@ class JetFilmizle : MainAPI() {
                     if (result) {
                         Log.i(
                             tag,
-                            "[$trace] V9 FIRST_WORKING_SOURCE source='${source.name}' type='${source.playerType}' index='${source.index}'"
+                            "[$trace] V10 FIRST_WORKING_SOURCE source='${source.name}' type='${source.playerType}' index='${source.index}'"
                         )
                         Log.i(
                             tag,
-                            "[$trace] V9 LOAD_LINKS END emittedAny=true uniqueIframes=${visitedIframes.size}"
+                            "[$trace] V10 LOAD_LINKS END emittedAny=true uniqueIframes=${visitedIframes.size}"
                         )
                         Log.i(tag, "[$trace] ========================================")
                         return true
@@ -499,7 +499,7 @@ class JetFilmizle : MainAPI() {
 
             Log.i(
                 tag,
-                "[$trace] V9 LOAD_LINKS END emittedAny=false uniqueIframes=${visitedIframes.size}"
+                "[$trace] V10 LOAD_LINKS END emittedAny=false uniqueIframes=${visitedIframes.size}"
             )
 
             Log.i(tag, "[$trace] ========================================")
@@ -508,7 +508,7 @@ class JetFilmizle : MainAPI() {
         } catch (t: Throwable) {
             Log.e(
                 tag,
-                "[$trace] V9 LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
+                "[$trace] V10 LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
                 t
             )
             false
@@ -637,6 +637,68 @@ class JetFilmizle : MainAPI() {
                 "[$trace] REAL_LINK_CALLBACK[$emittedCount] source='${source.name}' host='$host' url='${safeUrlForLog(link.url)}'"
             )
             callback(link)
+        }
+
+        // JetGlobal: /jetembed/<imdb> kendi icinde 12 alternatif provider donduruyor.
+        // Bunu normal VideoPark/OPlay resolverina gonderirsek VIDEO_DATA aranip bosa duser.
+        if (
+            (host == "videopark.top" || host.endsWith(".videopark.top")) &&
+            iframeUrl.contains("/jetembed/", ignoreCase = true)
+        ) {
+            val beforeJetGlobal = emittedCount
+            val jetGlobalReported = JetGlobal.resolve(
+                embedUrl = iframeUrl,
+                detailUrl = detailUrl,
+                trace = trace,
+                subtitleCallback = subtitleCallback,
+                callback = countingCallback
+            )
+            val jetGlobalEmitted = emittedCount - beforeJetGlobal
+
+            Log.i(
+                tag,
+                "[$trace] JETGLOBAL_RESULT reported=$jetGlobalReported emitted=$jetGlobalEmitted source='${source.name}'"
+            )
+
+            if (jetGlobalEmitted > 0) {
+                return true
+            }
+        }
+
+        // YouTube gercek player kaynagi olarak /jetplayer iframe'inden gelirse
+        // CloudStream extractor'a dogrudan ver. Detail sayfasindaki fragman
+        // iframe'i buraya hic gelmez; bu nedenle trailer film diye acilmaz.
+        if (
+            host == "youtube.com" || host.endsWith(".youtube.com") ||
+            host == "youtube-nocookie.com" || host.endsWith(".youtube-nocookie.com") ||
+            host == "youtu.be" || host.endsWith(".youtu.be")
+        ) {
+            val beforeYoutube = emittedCount
+
+            try {
+                val reported = loadExtractor(
+                    iframeUrl,
+                    detailUrl,
+                    subtitleCallback,
+                    countingCallback
+                )
+
+                val youtubeEmitted = emittedCount - beforeYoutube
+
+                Log.i(
+                    tag,
+                    "[$trace] YOUTUBE_RESULT reported=$reported emitted=$youtubeEmitted source='${source.name}'"
+                )
+
+                if (youtubeEmitted > 0) {
+                    return true
+                }
+            } catch (t: Throwable) {
+                Log.e(
+                    tag,
+                    "[$trace] YOUTUBE_FAIL type=${t::class.java.simpleName} msg=${t.message}"
+                )
+            }
         }
 
         // OPlay VideoPark yolu daha önce doğrudan doğrulandı.
