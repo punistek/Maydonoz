@@ -356,7 +356,7 @@ class JetFilmizle : MainAPI() {
         val trace = traceId()
 
         Log.i(tag, "[$trace] ========================================")
-        Log.i(tag, "[$trace] V8 LOAD_LINKS START")
+        Log.i(tag, "[$trace] V9 LOAD_LINKS START")
         Log.i(tag, "[$trace] DETAIL_URL=$data")
         Log.i(tag, "[$trace] isCasting=$isCasting")
 
@@ -420,13 +420,19 @@ class JetFilmizle : MainAPI() {
             val orderedSources = sources.sortedWith(
                 compareBy<PlayerSource> {
                     when {
-                        it.name.equals("OPlay", ignoreCase = true) -> 0
+                        // PARS player .m3u8 uzantılı kaynakları doğrudan Exo HLS açıyor.
+                        // OPlay /m/... uzantısız HLS olduğu için player format fix gelene kadar
+                        // Moly/Vidara'yı öne alıyoruz; OPlay yine güçlü fallback olarak kalıyor.
                         it.name.equals("Moly", ignoreCase = true) ||
-                            it.name.equals("VidMoly", ignoreCase = true) -> 1
-                        it.name.equals("Vidara", ignoreCase = true) -> 2
-                        it.name.equals("JetGlobal", ignoreCase = true) -> 3
-                        it.name.equals("Multi", ignoreCase = true) -> 4
-                        it.name.equals("STape", ignoreCase = true) -> 5
+                            it.name.equals("VidMoly", ignoreCase = true) -> 0
+                        it.name.equals("Vidara", ignoreCase = true) -> 1
+                        it.name.equals("OPlay", ignoreCase = true) -> 2
+                        it.name.equals("StreamHLS", ignoreCase = true) -> 3
+                        it.name.equals("JetGlobal", ignoreCase = true) -> 4
+                        it.name.equals("Multi", ignoreCase = true) -> 5
+                        // StreamTape CDN baglantisi logda 443 connect hatasi verdi;
+                        // bu nedenle ancak son yedeklerden biri olsun.
+                        it.name.equals("STape", ignoreCase = true) -> 9
                         else -> 6
                     }
                 }.thenBy { it.playerType }
@@ -479,11 +485,11 @@ class JetFilmizle : MainAPI() {
                     if (result) {
                         Log.i(
                             tag,
-                            "[$trace] V8 FIRST_WORKING_SOURCE source='${source.name}' type='${source.playerType}' index='${source.index}'"
+                            "[$trace] V9 FIRST_WORKING_SOURCE source='${source.name}' type='${source.playerType}' index='${source.index}'"
                         )
                         Log.i(
                             tag,
-                            "[$trace] V8 LOAD_LINKS END emittedAny=true uniqueIframes=${visitedIframes.size}"
+                            "[$trace] V9 LOAD_LINKS END emittedAny=true uniqueIframes=${visitedIframes.size}"
                         )
                         Log.i(tag, "[$trace] ========================================")
                         return true
@@ -493,7 +499,7 @@ class JetFilmizle : MainAPI() {
 
             Log.i(
                 tag,
-                "[$trace] V8 LOAD_LINKS END emittedAny=false uniqueIframes=${visitedIframes.size}"
+                "[$trace] V9 LOAD_LINKS END emittedAny=false uniqueIframes=${visitedIframes.size}"
             )
 
             Log.i(tag, "[$trace] ========================================")
@@ -502,7 +508,7 @@ class JetFilmizle : MainAPI() {
         } catch (t: Throwable) {
             Log.e(
                 tag,
-                "[$trace] V8 LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
+                "[$trace] V9 LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
                 t
             )
             false

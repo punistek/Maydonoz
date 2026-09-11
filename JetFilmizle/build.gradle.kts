@@ -1,9 +1,9 @@
-version = 8
+version = 9
 
 cloudstream {
     authors     = listOf("PARS")
     language    = "tr"
-    description = "JetFilmizle - Filmler, türler ve hızlı oynatma"
+    description = "JetFilmizle V9 - VidMoly fix, HLS kaynak onceligi, turler"
 
     status  = 1
     tvTypes = listOf("Movie")

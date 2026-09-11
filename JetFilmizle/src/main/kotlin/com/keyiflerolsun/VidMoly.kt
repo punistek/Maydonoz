@@ -3,6 +3,7 @@ package com.keyiflerolsun
 import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
+import org.jsoup.parser.Parser
 
 object VidMoly {
 
@@ -20,7 +21,7 @@ object VidMoly {
         trace: String,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        Log.i(TAG, "[$trace] VIDMOLY START embed=${safeUrlForLog(embedUrl)}")
+        Log.i(TAG, "[$trace] VIDMOLY V9 START embed=${safeUrlForLog(embedUrl)}")
 
         return try {
             val response = app.get(
@@ -40,11 +41,34 @@ object VidMoly {
 
             val hls = extractHls(html)
             if (hls.isNullOrBlank()) {
-                Log.e(TAG, "[$trace] VIDMOLY master.m3u8 BULUNAMADI")
+                Log.e(TAG, "[$trace] VIDMOLY V9 m3u8 BULUNAMADI")
                 return false
             }
 
-            Log.i(TAG, "[$trace] VIDMOLY HLS url=${safeUrlForLog(hls)}")
+            Log.i(TAG, "[$trace] VIDMOLY V9 HLS url=${safeUrlForLog(hls)}")
+
+            // URL'in kendisini de doğrula. Token süresi geçmiş / HTML dönen linki
+            // player'a başarılı kaynak diye göndermeyelim.
+            val verify = app.get(
+                hls,
+                headers = mapOf(
+                    "User-Agent" to ua,
+                    "Referer" to embedUrl,
+                    "Accept" to "*/*"
+                )
+            )
+            val verifyBody = verify.text
+            val isHls = verify.code in 200..299 && verifyBody.trimStart().startsWith("#EXTM3U")
+
+            Log.i(
+                TAG,
+                "[$trace] VIDMOLY V9 VERIFY status=${verify.code} len=${verifyBody.length} isM3u8=$isHls"
+            )
+
+            if (!isHls) {
+                Log.e(TAG, "[$trace] VIDMOLY V9 HLS doğrulama BASARISIZ")
+                return false
+            }
 
             val label = if (playerLabel.isBlank()) {
                 "VidMoly HLS"
@@ -68,12 +92,12 @@ object VidMoly {
                 }
             )
 
-            Log.i(TAG, "[$trace] VIDMOLY CALLBACK OK")
+            Log.i(TAG, "[$trace] VIDMOLY V9 CALLBACK OK")
             true
         } catch (t: Throwable) {
             Log.e(
                 TAG,
-                "[$trace] VIDMOLY EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
+                "[$trace] VIDMOLY V9 EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
                 t
             )
             false
@@ -81,18 +105,26 @@ object VidMoly {
     }
 
     private fun extractHls(html: String): String? {
+        // V8'de raw Kotlin Regex icinde \\s ve \\. kullanıldığı için regex
+        // whitespace / '.m3u8' yerine literal ters slash arıyordu. V9'da
+        // gerçek VidMoly yapısını doğrudan yakalıyoruz:
+        // [{ "file": 'https://.../master.m3u8?...' }]
+        val decoded = Parser.unescapeEntities(html, false)
+            .replace("\\/", "/")
+            .replace("\\u0026", "&")
+
         val patterns = listOf(
-            Regex("""[\"']?file[\"']?\\s*:\\s*[\"'](https?://[^\"']+?\\.m3u8[^\"']*)[\"']""", RegexOption.IGNORE_CASE),
-            Regex("""[\"'](https?://[^\"']+?\\.m3u8[^\"']*)[\"']""", RegexOption.IGNORE_CASE),
-            Regex("""(https?:\\?/\\?/[^\s\"']+?\\.m3u8[^\s\"']*)""", RegexOption.IGNORE_CASE)
+            Regex("""[\"']?file[\"']?\s*:\s*[\"'](https?://[^\"']+?\.m3u8[^\"']*)[\"']""", RegexOption.IGNORE_CASE),
+            Regex("""[\"'](https?://[^\"']+?\.m3u8[^\"']*)[\"']""", RegexOption.IGNORE_CASE),
+            Regex("""(https?://[^\s\"'<>]+?\.m3u8[^\s\"'<>]*)""", RegexOption.IGNORE_CASE)
         )
 
-        for (pattern in patterns) {
-            val raw = pattern.find(html)?.groupValues?.getOrNull(1)?.trim().orEmpty()
+        for ((index, pattern) in patterns.withIndex()) {
+            val raw = pattern.find(decoded)?.groupValues?.getOrNull(1)?.trim().orEmpty()
             if (raw.isBlank()) continue
 
+            Log.i(TAG, "VIDMOLY V9 REGEX_MATCH pattern=$index")
             return raw
-                .replace("\\/", "/")
                 .replace("&amp;", "&")
                 .replace("\\u0026", "&")
         }
