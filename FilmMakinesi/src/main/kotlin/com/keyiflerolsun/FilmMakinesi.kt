@@ -30,13 +30,64 @@ class FilmMakinesi : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
-        mainUrl to "Son Filmler"
+        mainUrl to "Son Filmler",
+        "$mainUrl/tur/aksiyon-fmy54y/film/" to "Aksiyon",
+        "$mainUrl/tur/bilim-kurgu-fm3/film/" to "Bilim Kurgu",
+        "$mainUrl/tur/fantastik-fm1/film/" to "Fantastik",
+        "$mainUrl/tur/macera-fm1/film/" to "Macera",
+        "$mainUrl/tur/korku-fm2/film/" to "Korku",
+        "$mainUrl/ulke/turkiye-fm4/" to "Yerli Filmler",
+        "$mainUrl/kanal/netflix-fm1/" to "Netflix",
+        "$mainUrl/kanal/amazon/" to "Amazon",
+        "$mainUrl/kanal/hbo/" to "HBO"
     )
 
     private fun cleanTitle(raw: String): String =
         raw.replace(Regex("""\s+(?:Filmi\s+)?1080p.*$""", RegexOption.IGNORE_CASE), "")
             .replace(Regex("""\s+Full\s+HD.*$""", RegexOption.IGNORE_CASE), "")
             .trim()
+
+    private fun absoluteUrl(raw: String?): String? {
+        val value = raw?.trim()?.replace("&amp;", "&")?.takeIf { it.isNotBlank() } ?: return null
+        return when {
+            value.startsWith("https://", true) || value.startsWith("http://", true) -> value
+            value.startsWith("//") -> "https:$value"
+            value.startsWith("/") -> "$mainUrl$value"
+            else -> "$mainUrl/${value.trimStart('/')}"
+        }
+    }
+
+    private fun posterFrom(a: org.jsoup.nodes.Element): String? {
+        val img = a.selectFirst(".thumbnail-outer img, img.thumbnail, img") ?: return null
+
+        val candidates = listOf(
+            img.attr("src"),
+            img.attr("data-src"),
+            img.attr("data-lazy-src"),
+            img.attr("data-original")
+        )
+
+        candidates.firstOrNull { it.isNotBlank() }?.let { return absoluteUrl(it) }
+
+        val srcset = img.attr("srcset")
+        if (srcset.isNotBlank()) {
+            val first = srcset.split(",")
+                .map { it.trim().substringBefore(" ").trim() }
+                .firstOrNull { it.isNotBlank() }
+            if (first != null) return absoluteUrl(first)
+        }
+
+        return null
+    }
+
+    private fun pageUrl(base: String, page: Int): String {
+        if (page <= 1) return base
+
+        return when {
+            base == mainUrl || base == "$mainUrl/" -> "$mainUrl/filmler-$page/"
+            else -> "${base.trimEnd('/')}/sayfa/$page/"
+        }
+    }
 
     private fun parseCards(document: org.jsoup.nodes.Document): List<SearchResponse> {
         val seen = linkedSetOf<String>()
@@ -62,17 +113,15 @@ class FilmMakinesi : MainAPI() {
 
             if (title.isBlank()) return@forEach
 
-            val img = a.selectFirst("img")
-            val rawPoster = img?.attr("data-src")?.trim().orEmpty()
-                .ifBlank { img?.attr("src")?.trim().orEmpty() }
+            // Sitedeki gerçek poster alanı:
+            // <img src="/uploads/postlar/afis/...webp" class="thumbnail" loading="lazy">
+            // data-src varsaymıyoruz; src + srcset + lazy fallback'ları okunuyor.
+            val poster = posterFrom(a)
 
-            /*
-             * Poster URL'leri sitede /uploads/... olarak relative geliyor.
-             * V1 startsWith("http") mantığı yüzünden posterleri düşürüyordu.
-             */
-            val poster = rawPoster
-                .takeIf { it.isNotBlank() }
-                ?.let { fixUrlNull(it) }
+            Log.d(
+                "FILMMAKINESI",
+                "CARD title=$title poster=${poster ?: "NONE"}"
+            )
 
             val year = a.selectFirst(".item-footer .info span")
                 ?.text()?.trim()?.toIntOrNull()
@@ -92,8 +141,8 @@ class FilmMakinesi : MainAPI() {
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val url = if (page <= 1) mainUrl else "$mainUrl/filmler-$page/"
-        Log.i("FILMMAKINESI", "MAIN GET $url")
+        val url = pageUrl(request.data, page)
+        Log.i("FILMMAKINESI", "MAIN GET section=${request.name} page=$page url=$url")
 
         val response = app.get(url, headers = headers())
         val items = parseCards(response.document)
@@ -134,9 +183,7 @@ class FilmMakinesi : MainAPI() {
                 ".info-poster img, .poster img, .before-player img, picture img"
             )?.attr("src")?.trim()
 
-        val poster = posterRaw
-            ?.takeIf { it.isNotBlank() }
-            ?.let { fixUrlNull(it) }
+        val poster = absoluteUrl(posterRaw)
 
         val description = document.selectFirst(".info-description p")
             ?.text()?.trim()
