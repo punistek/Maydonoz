@@ -232,7 +232,7 @@ object VideoPark {
         return true
     }
 
-    private fun emitMp4Fallbacks(
+    private suspend fun emitMp4Fallbacks(
         trace: String,
         array: JSONArray?,
         playerLabel: String,
