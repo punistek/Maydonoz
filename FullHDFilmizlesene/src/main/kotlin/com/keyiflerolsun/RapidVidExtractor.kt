@@ -21,9 +21,9 @@ import okhttp3.Response
 import org.jsoup.Jsoup
 import org.json.JSONObject
 
-open class RapidVid : ExtractorApi() {
+open class ParsRapidVid : ExtractorApi() {
 
-    override val name = "RapidVid"
+    override val name = "PARS RapidVid"
     override val mainUrl = "https://rapidvid.org"
     override val requiresReferer = true
 
@@ -48,7 +48,7 @@ open class RapidVid : ExtractorApi() {
                     body.contains("Enable JavaScript and cookies to continue", ignoreCase = true)
 
             if (challenged) {
-                Log.w("Kekik_RapidVid", "Cloudflare challenge -> CloudflareKiller")
+                Log.w("PARS_RAPIDVID", "Cloudflare challenge -> CloudflareKiller")
                 response.close()
                 return cloudflareKiller.intercept(chain)
             }
@@ -66,9 +66,9 @@ open class RapidVid : ExtractorApi() {
         val extRef = referer ?: "https://www.fullhdfilmizlesene.now/"
         val playerUrl = normalizePlayerUrl(url)
 
-        Log.d("Kekik_RapidVid", "input     » $url")
-        Log.d("Kekik_RapidVid", "playerUrl » $playerUrl")
-        Log.d("Kekik_RapidVid", "referer   » $extRef")
+        Log.d("PARS_RAPIDVID", "input     » $url")
+        Log.d("PARS_RAPIDVID", "playerUrl » $playerUrl")
+        Log.d("PARS_RAPIDVID", "referer   » $extRef")
 
         /*
          * Kritik:
@@ -99,7 +99,7 @@ open class RapidVid : ExtractorApi() {
         val html = response.text
 
         Log.d(
-            "Kekik_RapidVid",
+            "PARS_RAPIDVID",
             "HTML status=${response.code} len=${html.length} finalUrl=${response.url}"
         )
 
@@ -142,26 +142,26 @@ open class RapidVid : ExtractorApi() {
                 )
             }
 
-        Log.d("Kekik_RapidVid", "_p8 bulundu » len=${p8.length}")
+        Log.d("PARS_RAPIDVID", "_p8 bulundu » len=${p8.length}")
 
         val decodedJson = try {
             decodeP8(p8)
         } catch (e: Exception) {
-            Log.e("Kekik_RapidVid", "_p8 decode hatasi", e)
+            Log.e("PARS_RAPIDVID", "_p8 decode hatasi", e)
             throw ErrorLoadingException(
                 "RapidVid _p8 decode edilemedi: ${e.message}"
             )
         }
 
         Log.d(
-            "Kekik_RapidVid",
+            "PARS_RAPIDVID",
             "_p8 JSON » ${decodedJson.take(900)}"
         )
 
         val data = try {
             JSONObject(decodedJson)
         } catch (e: Exception) {
-            Log.e("Kekik_RapidVid", "JSON parse hatasi", e)
+            Log.e("PARS_RAPIDVID", "JSON parse hatasi", e)
             throw ErrorLoadingException("RapidVid _p8 sonucu JSON degil")
         }
 
@@ -172,10 +172,10 @@ open class RapidVid : ExtractorApi() {
         // core JS'de tier-ready flag: D = !!t.tr
         val tierReady = data.optBoolean("tr", false)
 
-        Log.d("Kekik_RapidVid", "vkey      » $vkey")
-        Log.d("Kekik_RapidVid", "tierReady » $tierReady")
-        Log.d("Kekik_RapidVid", "cm        » ${safeUrlForLog(cm)}")
-        Log.d("Kekik_RapidVid", "tm        » ${safeUrlForLog(tm)}")
+        Log.d("PARS_RAPIDVID", "vkey      » $vkey")
+        Log.d("PARS_RAPIDVID", "tierReady » $tierReady")
+        Log.d("PARS_RAPIDVID", "cm        » ${safeUrlForLog(cm)}")
+        Log.d("PARS_RAPIDVID", "tm        » ${safeUrlForLog(tm)}")
 
         /*
          * Guncel core JS:
@@ -203,7 +203,7 @@ open class RapidVid : ExtractorApi() {
         }
 
         Log.d(
-            "Kekik_RapidVid",
+            "PARS_RAPIDVID",
             "MASTER » ${safeUrlForLog(masterUrl)}"
         )
 
@@ -363,7 +363,7 @@ open class RapidVid : ExtractorApi() {
             .take(700)
 
         Log.w(
-            "Kekik_RapidVid",
+            "PARS_RAPIDVID",
             "HTML_CLUES found=$found preview=$compact"
         )
     }

@@ -375,6 +375,7 @@ class FullHDFilmizlesene : MainAPI() {
     }
 
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+        Log.d("FHD", "V2_PARS_DIRECT_RESOLVER")
         Log.d("FHD", "data » $data")
         val canonicalData = normalizeSiteUrl(data)
         Log.d("FHD", "canonical data » $canonicalData")
@@ -412,7 +413,22 @@ class FullHDFilmizlesene : MainAPI() {
 
                 Log.d("FHD", "loadExtractor key=$key url=$normalizedVideoUrl")
 
-                if (normalizedVideoUrl.contains("turbo.imgz.me")) {
+                if (
+                    normalizedVideoUrl.contains("rapidvid.org/", ignoreCase = true) ||
+                    normalizedVideoUrl.contains("rapidvid.net/", ignoreCase = true)
+                ) {
+                    // KRITIK:
+                    // loadExtractor() kullanirsak host APK icindeki
+                    // com.lagradost.cloudstream3.extractors.RapidVid secilebiliyor.
+                    // V1 logunda olan tam olarak buydu. Kendi resolverimizi dogrudan cagir.
+                    Log.d("FHD", "PARS_RAPIDVID_DIRECT -> $normalizedVideoUrl")
+                    ParsRapidVid().getUrl(
+                        normalizedVideoUrl,
+                        canonicalData,
+                        subtitleCallback,
+                        callback
+                    )
+                } else if (normalizedVideoUrl.contains("turbo.imgz.me")) {
                     loadExtractor("${key}||${normalizedVideoUrl}", "${mainUrl}/", subtitleCallback, callback)
                 } else {
                     loadExtractor(normalizedVideoUrl, canonicalData, subtitleCallback, callback)

@@ -8,6 +8,5 @@ import com.lagradost.cloudstream3.plugins.Plugin
 class FullHDFilmizlesenePlugin : Plugin() {
     override fun load(context: Context) {
         registerMainAPI(FullHDFilmizlesene())
-        registerExtractorAPI(RapidVid())
     }
 }
