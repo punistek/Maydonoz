@@ -31,12 +31,28 @@ class Sinemakolik : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
-        mainUrl to "Son Eklenen Filmler"
+        mainUrl to "Son Eklenen Filmler",
+        "$mainUrl/aile" to "Aile Filmleri",
+        "$mainUrl/animasyon-izle" to "Animasyon Filmleri",
+        "$mainUrl/aksiyon" to "Aksiyon Filmleri",
+        "$mainUrl/bilim-kurgu" to "Bilim Kurgu Filmleri",
+        "$mainUrl/korku" to "Korku Filmleri",
+        "$mainUrl/savas" to "Savaş Filmleri",
+        "$mainUrl/suc" to "Suç Filmleri"
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val url = if (page <= 1) mainUrl else "$mainUrl/page/$page"
-        Log.i("SNMK", "MAIN_PAGE GET page=$page url=$url")
+        val baseUrl = request.data.trimEnd('/')
+        val url = if (page <= 1) {
+            baseUrl
+        } else {
+            "$baseUrl/page/$page"
+        }
+
+        Log.i(
+            "SNMK",
+            "MAIN_PAGE GET section=${request.name} page=$page url=$url"
+        )
 
         val document = app.get(url, headers = headers()).document
         val items = document.select("div.move_k a[href*=/film/]")
