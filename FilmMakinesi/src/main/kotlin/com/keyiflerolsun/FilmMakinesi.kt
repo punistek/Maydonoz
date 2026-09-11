@@ -42,32 +42,48 @@ class FilmMakinesi : MainAPI() {
         val seen = linkedSetOf<String>()
         val out = mutableListOf<SearchResponse>()
 
-        document.select(
-            "#latestmovies a.item[href*=/film/], " +
-            ".film-list a.item[href*=/film/], " +
-            "a.item[href*=/film/]"
-        ).forEach { a ->
+        /*
+         * FilmMakinesi ana sayfada "Yakında" kartlarını da a.item olarak basıyor.
+         * Bunların class'ı "item soon" ve henüz player'ları yok.
+         * V1'de en genel a.item selector'ı bunları da aldığı için
+         * Street Fighter / Digger / Wildwood gibi yayınsız kartlar uygulamaya girdi.
+         *
+         * Burada domain/film ismi hardcode etmiyoruz:
+         * yalnız sitenin kendi "soon" durumunu eliyoruz.
+         */
+        document.select("a.item[href*=/film/]:not(.soon)").forEach { a ->
             val href = fixUrlNull(a.attr("href")) ?: return@forEach
             if (!href.contains("/film/") || !seen.add(href)) return@forEach
 
             val title = a.attr("data-title").trim()
                 .ifBlank { a.selectFirst(".item-footer .title")?.text()?.trim().orEmpty() }
+                .ifBlank { a.selectFirst(".item-title")?.text()?.trim().orEmpty() }
                 .ifBlank { a.selectFirst("img")?.attr("alt")?.trim().orEmpty() }
 
             if (title.isBlank()) return@forEach
 
             val img = a.selectFirst("img")
-            val poster = img?.attr("data-src")?.takeIf { it.isNotBlank() }
-                ?: img?.attr("src")?.takeIf { it.isNotBlank() }
+            val rawPoster = img?.attr("data-src")?.trim().orEmpty()
+                .ifBlank { img?.attr("src")?.trim().orEmpty() }
+
+            /*
+             * Poster URL'leri sitede /uploads/... olarak relative geliyor.
+             * V1 startsWith("http") mantığı yüzünden posterleri düşürüyordu.
+             */
+            val poster = rawPoster
+                .takeIf { it.isNotBlank() }
+                ?.let { fixUrlNull(it) }
 
             val year = a.selectFirst(".item-footer .info span")
                 ?.text()?.trim()?.toIntOrNull()
 
             out += newMovieSearchResponse(title, href, TvType.Movie) {
-                this.posterUrl = poster?.let { fixUrlNull(it) }
+                this.posterUrl = poster
                 this.year = year
             }
         }
+
+        Log.i("FILMMAKINESI", "PARSE_CARDS playable=${out.size}")
 
         return out
     }
@@ -111,11 +127,16 @@ class FilmMakinesi : MainAPI() {
 
         val title = cleanTitle(rawTitle)
 
-        val poster = document.selectFirst("meta[property=og:image]")
+        val posterRaw = document.selectFirst("meta[property=og:image]")
             ?.attr("content")?.trim()
             ?.takeIf { it.isNotBlank() }
-            ?: document.selectFirst(".info-poster img, .poster img")
-                ?.attr("src")?.let { fixUrlNull(it) }
+            ?: document.selectFirst(
+                ".info-poster img, .poster img, .before-player img, picture img"
+            )?.attr("src")?.trim()
+
+        val poster = posterRaw
+            ?.takeIf { it.isNotBlank() }
+            ?.let { fixUrlNull(it) }
 
         val description = document.selectFirst(".info-description p")
             ?.text()?.trim()
@@ -133,7 +154,10 @@ class FilmMakinesi : MainAPI() {
             ".after-player iframe[src*=closeload.filmmakinesi.to]"
         )?.let { it.attr("data-src").ifBlank { it.attr("src") } }
 
-        Log.i("FILMMAKINESI", "LOAD title=$title closeLoad=${!closeLoad.isNullOrBlank()}")
+        Log.i(
+            "FILMMAKINESI",
+            "LOAD title=$title closeLoad=${!closeLoad.isNullOrBlank()} poster=${!poster.isNullOrBlank()}"
+        )
 
         return newMovieLoadResponse(title, url, TvType.Movie, url) {
             this.posterUrl = poster

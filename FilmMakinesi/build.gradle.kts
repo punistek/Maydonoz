@@ -1,9 +1,9 @@
-version = 1
+version = 2
 
 cloudstream {
     authors     = listOf("PARS")
     language    = "tr"
-    description = "FilmMakinesi - CloseLoad PACKER + dinamik HDF decoder"
+    description = "FilmMakinesi - oynatılabilir kartlar + CloseLoad PACKER/HDF"
 
     status  = 1
     tvTypes = listOf("Movie")
