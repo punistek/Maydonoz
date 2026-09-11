@@ -14,11 +14,13 @@ class JetFilmizle : MainAPI() {
     override var mainUrl = "https://jetfilmizle.now"
     override var name = "JetFilmizle"
 
-    // Şu aşamada katalog selector'larını tahmin etmiyoruz.
-    // Bu provider detay URL'si verildiğinde load/loadLinks ile çalışır.
-    override val hasMainPage = false
+    override val hasMainPage = true
     override val hasQuickSearch = false
     override val supportedTypes = setOf(TvType.Movie)
+
+    override val mainPage = mainPageOf(
+        "/" to "Son Eklenen Filmler"
+    )
 
     private val tag = "JET_RESOLVER"
 
@@ -78,6 +80,177 @@ class JetFilmizle : MainAPI() {
         "Cache-Control" to "no-cache",
         "Pragma" to "no-cache"
     )
+
+
+    override suspend fun getMainPage(
+        page: Int,
+        request: MainPageRequest
+    ): HomePageResponse {
+        val trace = traceId()
+        val path = request.data
+
+        val url = if (page <= 1) {
+            fixUrl(path)
+        } else {
+            val sep = if (path.contains("?")) "&" else "?"
+            fixUrl("$path${sep}page=$page")
+        }
+
+        Log.i(
+            tag,
+            "[$trace] MAIN_PAGE START page=$page request='${request.name}' url=$url"
+        )
+
+        return try {
+            val response = app.get(
+                url,
+                headers = baseHeaders() + mapOf(
+                    "Accept" to
+                        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "Referer" to "$mainUrl/"
+                ),
+                interceptor = cloudflareInterceptor
+            )
+
+            Log.i(
+                tag,
+                "[$trace] MAIN_PAGE GET status=${response.code} finalUrl=${response.url}"
+            )
+
+            val html = response.text
+            Log.i(tag, "[$trace] MAIN_PAGE htmlLength=${html.length}")
+            logHtmlState(trace, "MAIN_PAGE", html)
+
+            if (isHardCloudflareBlock(html)) {
+                Log.e(tag, "[$trace] MAIN_PAGE HARD CLOUDFLARE BLOCK")
+                return newHomePageResponse(
+                    request.name,
+                    emptyList()
+                )
+            }
+
+            val doc = Jsoup.parse(html, url)
+
+            val candidates = linkedMapOf<String, SearchResponse>()
+
+            // JetFilmizle film detay linkleri /film/... şeklinde.
+            // Selector yapısını mümkün olduğunca genel tutuyoruz ama sadece film detaylarını alıyoruz.
+            doc.select("a[href*=/film/]").forEachIndexed { index, a ->
+                try {
+                    val rawHref = a.attr("href").trim()
+                    if (rawHref.isBlank()) return@forEachIndexed
+
+                    val href = fixUrl(rawHref)
+
+                    // Aynı film sayfada birden çok yerde geçebilir.
+                    if (candidates.containsKey(href)) {
+                        return@forEachIndexed
+                    }
+
+                    val title =
+                        a.attr("title")
+                            .trim()
+                            .takeIf { it.isNotBlank() }
+                            ?: a.selectFirst("img[alt]")
+                                ?.attr("alt")
+                                ?.trim()
+                                ?.takeIf { it.isNotBlank() }
+                            ?: a.selectFirst(
+                                ".film-title, .movie-title, .title, h2, h3, h4"
+                            )
+                                ?.text()
+                                ?.trim()
+                                ?.takeIf { it.isNotBlank() }
+                            ?: a.text()
+                                .trim()
+                                .takeIf { it.length in 2..180 }
+
+                    if (title.isNullOrBlank()) {
+                        return@forEachIndexed
+                    }
+
+                    val img = a.selectFirst("img")
+                    val posterRaw =
+                        listOf(
+                            "data-src",
+                            "data-lazy-src",
+                            "data-original",
+                            "src"
+                        )
+                            .firstNotNullOfOrNull { key ->
+                                img?.attr(key)
+                                    ?.trim()
+                                    ?.takeIf { it.isNotBlank() }
+                            }
+
+                    val poster = posterRaw?.let {
+                        if (it.startsWith("http")) it else fixUrl(it)
+                    }
+
+                    val cleanTitle = title
+                        .replace(Regex("""\s+izle$""", RegexOption.IGNORE_CASE), "")
+                        .replace(Regex("""\s+filmi$""", RegexOption.IGNORE_CASE), "")
+                        .trim()
+
+                    if (cleanTitle.length < 2) {
+                        return@forEachIndexed
+                    }
+
+                    val item = newMovieSearchResponse(
+                        cleanTitle,
+                        href,
+                        TvType.Movie
+                    ) {
+                        this.posterUrl = poster
+                    }
+
+                    candidates[href] = item
+
+                    if (index < 12) {
+                        Log.d(
+                            tag,
+                            "[$trace] MAIN_PAGE ITEM index=$index title='$cleanTitle' href=$href posterPresent=${!poster.isNullOrBlank()}"
+                        )
+                    }
+                } catch (t: Throwable) {
+                    Log.w(
+                        tag,
+                        "[$trace] MAIN_PAGE ITEM_PARSE_FAIL index=$index type=${t::class.java.simpleName} msg=${t.message}"
+                    )
+                }
+            }
+
+            val items = candidates.values.toList()
+
+            Log.i(
+                tag,
+                "[$trace] MAIN_PAGE DONE uniqueItems=${items.size}"
+            )
+
+            if (items.isEmpty()) {
+                Log.e(
+                    tag,
+                    "[$trace] MAIN_PAGE NO_ITEMS title='${doc.title()}'"
+                )
+            }
+
+            newHomePageResponse(
+                request.name,
+                items
+            )
+        } catch (t: Throwable) {
+            Log.e(
+                tag,
+                "[$trace] MAIN_PAGE EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
+                t
+            )
+
+            newHomePageResponse(
+                request.name,
+                emptyList()
+            )
+        }
+    }
 
     override suspend fun load(url: String): LoadResponse {
         val trace = traceId()
