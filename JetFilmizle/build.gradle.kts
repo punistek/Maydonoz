@@ -1,9 +1,9 @@
-version = 5
+version = 6
 
 cloudstream {
     authors     = listOf("PARS")
     language    = "tr"
-    description = "JetFilmizle kaynak haritası collector: detail -> source -> /jetplayer -> iframe log."
+    description = "JetFilmizle V6: dinamik kaynak kesfi + jetplayer + VideoPark + iframe extractor."
 
     status  = 1
     tvTypes = listOf("Movie")

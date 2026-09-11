@@ -203,14 +203,14 @@ object VideoPark {
 
         val prettyLabel =
             if (playerLabel.isBlank()) {
-                "OPlay HLS"
+                "VideoPark HLS"
             } else {
-                "OPlay HLS [$playerLabel]"
+                "VideoPark HLS [$playerLabel]"
             }
 
         callback.invoke(
             newExtractorLink(
-                source = "JetFilmizle - OPlay",
+                source = "JetFilmizle - VideoPark",
                 name = prettyLabel,
                 url = hlsFile,
                 type = ExtractorLinkType.M3U8
@@ -270,14 +270,14 @@ object VideoPark {
 
                 val name =
                     if (playerLabel.isBlank()) {
-                        "OPlay $label"
+                        "VideoPark $label"
                     } else {
-                        "OPlay $label [$playerLabel]"
+                        "VideoPark $label [$playerLabel]"
                     }
 
                 callback.invoke(
                     newExtractorLink(
-                        source = "JetFilmizle - OPlay",
+                        source = "JetFilmizle - VideoPark",
                         name = name,
                         url = file,
                         type = ExtractorLinkType.VIDEO
