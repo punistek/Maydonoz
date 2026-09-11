@@ -1,9 +1,9 @@
-version = 7
+version = 8
 
 cloudstream {
     authors     = listOf("PARS")
     language    = "tr"
-    description = "JetFilmizle V7: ilk gerçek linkte durur; false-positive extractor sonucu saymaz."
+    description = "JetFilmizle - Filmler, türler ve hızlı oynatma"
 
     status  = 1
     tvTypes = listOf("Movie")

@@ -122,13 +122,10 @@ object VideoPark {
             }
 
             val mp4Sources = root.optJSONArray("mp4Sources")
-
-            emittedAny = emitMp4Fallbacks(
-                trace = trace,
-                array = mp4Sources,
-                playerLabel = playerLabel,
-                callback = callback
-            ) || emittedAny
+            Log.i(
+                TAG,
+                "[$trace] [VP 5/5] HLS_ONLY mp4Sources=${mp4Sources?.length() ?: 0} skipped=true"
+            )
 
             Log.i(
                 TAG,

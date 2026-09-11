@@ -19,7 +19,23 @@ class JetFilmizle : MainAPI() {
     override val supportedTypes = setOf(TvType.Movie)
 
     override val mainPage = mainPageOf(
-        "/" to "Son Eklenen Filmler"
+        "/" to "Son Eklenen Filmler",
+        "/tur/dram" to "Dram",
+        "/tur/komedi" to "Komedi",
+        "/tur/gerilim" to "Gerilim",
+        "/tur/aksiyon" to "Aksiyon",
+        "/tur/romantik" to "Romantik",
+        "/tur/suc" to "Suç",
+        "/tur/macera" to "Macera",
+        "/tur/korku" to "Korku",
+        "/tur/gizem" to "Gizem",
+        "/tur/fantastik" to "Fantastik",
+        "/tur/aile" to "Aile",
+        "/tur/bilim-kurgu" to "Bilim Kurgu",
+        "/tur/belgesel" to "Belgesel",
+        "/tur/animasyon" to "Animasyon",
+        "/tur/spor" to "Spor",
+        "/tur/muzik" to "Müzik"
     )
 
     private val tag = "JET_RESOLVER"
@@ -340,7 +356,7 @@ class JetFilmizle : MainAPI() {
         val trace = traceId()
 
         Log.i(tag, "[$trace] ========================================")
-        Log.i(tag, "[$trace] V7 LOAD_LINKS START")
+        Log.i(tag, "[$trace] V8 LOAD_LINKS START")
         Log.i(tag, "[$trace] DETAIL_URL=$data")
         Log.i(tag, "[$trace] isCasting=$isCasting")
 
@@ -405,10 +421,13 @@ class JetFilmizle : MainAPI() {
                 compareBy<PlayerSource> {
                     when {
                         it.name.equals("OPlay", ignoreCase = true) -> 0
-                        it.name.equals("Vidara", ignoreCase = true) -> 1
-                        it.name.equals("JetGlobal", ignoreCase = true) -> 2
-                        it.name.equals("Multi", ignoreCase = true) -> 3
-                        else -> 4
+                        it.name.equals("Moly", ignoreCase = true) ||
+                            it.name.equals("VidMoly", ignoreCase = true) -> 1
+                        it.name.equals("Vidara", ignoreCase = true) -> 2
+                        it.name.equals("JetGlobal", ignoreCase = true) -> 3
+                        it.name.equals("Multi", ignoreCase = true) -> 4
+                        it.name.equals("STape", ignoreCase = true) -> 5
+                        else -> 6
                     }
                 }.thenBy { it.playerType }
                     .thenBy { it.index.toIntOrNull() ?: Int.MAX_VALUE }
@@ -460,11 +479,11 @@ class JetFilmizle : MainAPI() {
                     if (result) {
                         Log.i(
                             tag,
-                            "[$trace] V7 FIRST_WORKING_SOURCE source='${source.name}' type='${source.playerType}' index='${source.index}'"
+                            "[$trace] V8 FIRST_WORKING_SOURCE source='${source.name}' type='${source.playerType}' index='${source.index}'"
                         )
                         Log.i(
                             tag,
-                            "[$trace] V7 LOAD_LINKS END emittedAny=true uniqueIframes=${visitedIframes.size}"
+                            "[$trace] V8 LOAD_LINKS END emittedAny=true uniqueIframes=${visitedIframes.size}"
                         )
                         Log.i(tag, "[$trace] ========================================")
                         return true
@@ -474,7 +493,7 @@ class JetFilmizle : MainAPI() {
 
             Log.i(
                 tag,
-                "[$trace] V7 LOAD_LINKS END emittedAny=false uniqueIframes=${visitedIframes.size}"
+                "[$trace] V8 LOAD_LINKS END emittedAny=false uniqueIframes=${visitedIframes.size}"
             )
 
             Log.i(tag, "[$trace] ========================================")
@@ -483,7 +502,7 @@ class JetFilmizle : MainAPI() {
         } catch (t: Throwable) {
             Log.e(
                 tag,
-                "[$trace] V7 LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
+                "[$trace] V8 LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
                 t
             )
             false
@@ -643,6 +662,33 @@ class JetFilmizle : MainAPI() {
                 tag,
                 "[$trace] RESOLVE_IFRAME VideoPark callback=0; generic extractor deneniyor."
             )
+        }
+
+        // VidMoly/Moly: CloudStream'in hazır extractor'ı bazı sayfalardaki
+        // tek tırnaklı JWPlayer source dizisini JSON sanıp parse edemiyor.
+        // Bu yüzden embed HTML içindeki gerçek master.m3u8'i kendimiz alıyoruz.
+        if (
+            host == "vidmoly.net" || host.endsWith(".vidmoly.net") ||
+            host == "vidmoly.biz" || host.endsWith(".vidmoly.biz")
+        ) {
+            val beforeVidMoly = emittedCount
+            val vidMolyReported = VidMoly.resolve(
+                embedUrl = iframeUrl,
+                pageReferer = detailUrl,
+                playerLabel = "${source.name}/${source.playerType}",
+                trace = trace,
+                callback = countingCallback
+            )
+            val vidMolyEmitted = emittedCount - beforeVidMoly
+
+            Log.i(
+                tag,
+                "[$trace] VIDMOLY_RESULT reported=$vidMolyReported emitted=$vidMolyEmitted source='${source.name}'"
+            )
+
+            if (vidMolyEmitted > 0) {
+                return true
+            }
         }
 
         val knownCollectedHost =
