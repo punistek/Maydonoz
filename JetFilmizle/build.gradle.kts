@@ -1,9 +1,9 @@
-version = 1
+version = 5
 
 cloudstream {
     authors     = listOf("PARS")
     language    = "tr"
-    description = "JetFilmizle OPlay kaynağını doğrudan HLS/MP4 olarak çözer."
+    description = "JetFilmizle kaynak haritası collector: detail -> source -> /jetplayer -> iframe log."
 
     status  = 1
     tvTypes = listOf("Movie")

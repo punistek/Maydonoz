@@ -340,8 +340,8 @@ class JetFilmizle : MainAPI() {
         val trace = traceId()
 
         Log.i(tag, "[$trace] ========================================")
-        Log.i(tag, "[$trace] LOAD_LINKS START")
-        Log.i(tag, "[$trace] data=$data")
+        Log.i(tag, "[$trace] COLLECTOR START")
+        Log.i(tag, "[$trace] DETAIL_URL=$data")
         Log.i(tag, "[$trace] isCasting=$isCasting")
 
         return try {
@@ -355,17 +355,17 @@ class JetFilmizle : MainAPI() {
                 interceptor = cloudflareInterceptor
             )
 
+            val detailHtml = detailResponse.text
+
             Log.i(
                 tag,
-                "[$trace] [1/6] DETAIL status=${detailResponse.code} finalUrl=${detailResponse.url}"
+                "[$trace] DETAIL status=${detailResponse.code} finalUrl=${detailResponse.url} htmlLength=${detailHtml.length}"
             )
 
-            val detailHtml = detailResponse.text
-            Log.i(tag, "[$trace] [1/6] DETAIL htmlLength=${detailHtml.length}")
             logHtmlState(trace, "DETAIL", detailHtml)
 
             if (isHardCloudflareBlock(detailHtml)) {
-                Log.e(tag, "[$trace] [1/6] HARD CLOUDFLARE BLOCK")
+                Log.e(tag, "[$trace] DETAIL HARD_CLOUDFLARE_BLOCK")
                 return false
             }
 
@@ -377,201 +377,241 @@ class JetFilmizle : MainAPI() {
                     ?.trim()
                     .orEmpty()
 
-            Log.i(tag, "[$trace] [2/6] filmId='$filmId'")
+            Log.i(tag, "[$trace] FILM_ID='$filmId'")
 
             if (filmId.isBlank()) {
-                Log.e(tag, "[$trace] [2/6] film_id BULUNAMADI")
+                Log.e(tag, "[$trace] FILM_ID BULUNAMADI")
                 return false
             }
+
+            dumpPlayerArea(trace, doc)
 
             val sources = discoverPlayerSources(
                 trace = trace,
                 doc = doc
             )
 
-            Log.i(
-                tag,
-                "[$trace] [3/6] discoveredSources=${sources.size}"
-            )
+            Log.i(tag, "[$trace] SOURCE_COUNT=${sources.size}")
 
             if (sources.isEmpty()) {
                 Log.e(
                     tag,
-                    "[$trace] [3/6] HICBIR PLAYER SOURCE BULUNAMADI - sabit index fallback KULLANILMADI"
+                    "[$trace] SOURCE YOK. /jetplayer istegi ATILMADI."
                 )
+                Log.i(tag, "[$trace] COLLECTOR END")
+                Log.i(tag, "[$trace] ========================================")
                 return false
             }
 
-            // Önce OPlay. OPlay yoksa şu an bilmediğimiz resolver'a körlemesine
-            // gitmiyoruz; logda gerçek kaynakları görüyoruz ve sonraki resolver'ı
-            // kanıtla ekliyoruz.
-            val oplaySources = sources.filter {
-                it.name.contains("oplay", ignoreCase = true) ||
-                    it.name.contains("o play", ignoreCase = true) ||
-                    it.raw.contains("/oplayer/", ignoreCase = true)
-            }
+            var iframeCount = 0
 
-            Log.i(
-                tag,
-                "[$trace] [3/6] oplaySources=${oplaySources.size}"
-            )
-
-            if (oplaySources.isEmpty()) {
-                Log.e(
-                    tag,
-                    "[$trace] [3/6] BU FILMDE OPLAY BULUNAMADI. Mevcut kaynaklar=${sources.joinToString { "${it.name}[${it.playerType}:${it.index}]" }}"
-                )
-                return false
-            }
-
-            var emittedAny = false
-
-            oplaySources.forEach { source ->
+            sources.forEachIndexed { i, source ->
                 Log.i(
                     tag,
-                    "[$trace] [3/6] OPLAY SECILDI name='${source.name}' type=${source.playerType} index=${source.index}"
+                    "[$trace] COLLECT_SOURCE[$i] name='${source.name}' type='${source.playerType}' index='${source.index}'"
                 )
 
-                val emitted = resolveOPlay(
+                val result = collectJetPlayer(
                     trace = trace,
                     detailUrl = data,
                     filmId = filmId,
-                    sourceIndex = source.index,
-                    playerType = source.playerType,
-                    subtitleCallback = subtitleCallback,
-                    callback = callback
+                    source = source,
+                    ordinal = i
                 )
 
-                emittedAny = emittedAny || emitted
+                iframeCount += result
             }
 
             Log.i(
                 tag,
-                "[$trace] LOAD_LINKS END emittedAny=$emittedAny"
+                "[$trace] COLLECTOR SUMMARY filmId='$filmId' sources=${sources.size} iframeCount=$iframeCount"
             )
+            Log.i(tag, "[$trace] COLLECTOR END")
             Log.i(tag, "[$trace] ========================================")
 
-            emittedAny
+            // Bu sürüm veri toplama sürümüdür. Bilerek player linki emit etmez.
+            false
         } catch (t: Throwable) {
             Log.e(
                 tag,
-                "[$trace] LOAD_LINKS EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
+                "[$trace] COLLECTOR EXCEPTION type=${t::class.java.simpleName} msg=${t.message}",
                 t
             )
             false
         }
     }
 
-    private suspend fun resolveOPlay(
+    /**
+     * Bir source kaydını /jetplayer'a gerçekten gönderir ve cevaptaki bütün
+     * iframe'leri loglar. Hiçbir iframe'i oynatmaya/resolver'a sokmaz.
+     */
+    private suspend fun collectJetPlayer(
         trace: String,
         detailUrl: String,
         filmId: String,
-        sourceIndex: String,
-        playerType: String,
-        subtitleCallback: (SubtitleFile) -> Unit,
-        callback: (ExtractorLink) -> Unit
-    ): Boolean {
+        source: PlayerSource,
+        ordinal: Int
+    ): Int {
         val jetPlayerUrl = "$mainUrl/jetplayer"
 
         Log.i(
             tag,
-            "[$trace] [4/6] JETPLAYER POST type=$playerType filmId=$filmId sourceIndex=$sourceIndex"
+            "[$trace] JETPLAYER_REQ[$ordinal] filmId='$filmId' type='${source.playerType}' index='${source.index}' name='${source.name}'"
         )
 
-        val postResponse = app.post(
+        val response = app.post(
             jetPlayerUrl,
             headers = baseHeaders() + mapOf(
                 "Accept" to "*/*",
-                "Content-Type" to "application/x-www-form-urlencoded",
+                "Content-Type" to "application/x-www-form-urlencoded; charset=UTF-8",
                 "X-Requested-With" to "XMLHttpRequest",
                 "Origin" to mainUrl,
                 "Referer" to detailUrl
             ),
             data = mapOf(
                 "film_id" to filmId,
-                "source_index" to sourceIndex,
-                "player_type" to playerType
+                "source_index" to source.index,
+                "player_type" to source.playerType
             ),
             interceptor = cloudflareInterceptor
         )
 
-        Log.i(
-            tag,
-            "[$trace] [4/6] JETPLAYER status=${postResponse.code} finalUrl=${postResponse.url}"
-        )
-
-        val playerCode = postResponse.text
+        val body = response.text
 
         Log.i(
             tag,
-            "[$trace] [4/6] JETPLAYER bodyLength=${playerCode.length}"
+            "[$trace] JETPLAYER_RES[$ordinal] status=${response.code} finalUrl=${response.url} bodyLength=${body.length}"
         )
 
         logPreview(
             trace,
-            "[4/6] JETPLAYER PREVIEW",
-            playerCode
+            "JETPLAYER_RES[$ordinal] PREVIEW",
+            body
         )
 
-        if (isHardCloudflareBlock(playerCode)) {
+        if (isHardCloudflareBlock(body)) {
             Log.e(
                 tag,
-                "[$trace] [4/6] JETPLAYER HARD CLOUDFLARE BLOCK"
+                "[$trace] JETPLAYER_RES[$ordinal] HARD_CLOUDFLARE_BLOCK"
             )
-            return false
+            return 0
         }
 
-        val playerDoc = Jsoup.parse(playerCode, jetPlayerUrl)
+        val playerDoc = Jsoup.parse(body, jetPlayerUrl)
 
-        val iframeUrl =
-            playerDoc.selectFirst("iframe[src]")
-                ?.let { iframe ->
-                    iframe.absUrl("src")
-                        .takeIf { it.isNotBlank() }
-                        ?: iframe.attr("src")
-                            .trim()
-                            .takeIf { it.isNotBlank() }
+        val alerts = playerDoc.select(
+            ".alert, .alert-danger, .error, .message, [role=alert]"
+        )
+            .map { it.text().trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        alerts.forEachIndexed { alertIndex, alert ->
+            Log.w(
+                tag,
+                "[$trace] JETPLAYER_ALERT[$ordinal][$alertIndex] '${safeTextForLog(alert, 500)}'"
+            )
+        }
+
+        val iframes = playerDoc.select("iframe")
+
+        if (iframes.isEmpty()) {
+            Log.w(
+                tag,
+                "[$trace] JETPLAYER_IFRAME[$ordinal] NONE"
+            )
+
+            // Iframe dışındaki olası embed/url izlerini sadece kanıt için logla.
+            playerDoc.select("[src], [data-src], [href]").take(20)
+                .forEachIndexed { attrIndex, el ->
+                    val value = listOf(
+                        el.attr("src"),
+                        el.attr("data-src"),
+                        el.attr("href")
+                    ).firstOrNull { it.isNotBlank() }.orEmpty()
+
+                    if (value.isNotBlank()) {
+                        Log.d(
+                            tag,
+                            "[$trace] JETPLAYER_ATTR[$ordinal][$attrIndex] tag=${el.tagName()} value='${safeUrlForLog(value)}'"
+                        )
+                    }
                 }
-                .orEmpty()
 
-        Log.i(
-            tag,
-            "[$trace] [5/6] iframeUrl=${safeUrlForLog(iframeUrl)}"
-        )
-
-        if (iframeUrl.isBlank()) {
-            Log.e(tag, "[$trace] [5/6] iframe BULUNAMADI")
-            return false
+            return 0
         }
 
-        if (!iframeUrl.contains("videopark.top", ignoreCase = true)) {
-            Log.e(
+        iframes.forEachIndexed { iframeIndex, iframe ->
+            val rawSrc = iframe.attr("src").trim()
+            val absSrc = iframe.absUrl("src").trim()
+            val finalSrc = absSrc.ifBlank { rawSrc }
+
+            val host = try {
+                java.net.URI(finalSrc).host.orEmpty()
+            } catch (_: Throwable) {
+                ""
+            }
+
+            Log.i(
                 tag,
-                "[$trace] [5/6] Beklenmeyen iframe host=$iframeUrl"
+                "[$trace] JETPLAYER_IFRAME[$ordinal][$iframeIndex] host='$host' url='${safeUrlForLog(finalSrc)}'"
             )
-            return false
+
+            Log.d(
+                tag,
+                "[$trace] JETPLAYER_IFRAME_HTML[$ordinal][$iframeIndex] ${safeTextForLog(iframe.outerHtml(), 900)}"
+            )
         }
 
-        Log.i(
-            tag,
-            "[$trace] [6/6] VideoPark resolve başlıyor type=$playerType"
+        return iframes.size
+    }
+
+    private fun dumpPlayerArea(
+        trace: String,
+        doc: org.jsoup.nodes.Document
+    ) {
+        val selectors = listOf(
+            "[data-source-index]",
+            "[data-player-type]",
+            ".player-source-btn",
+            ".player-source",
+            ".player-sources",
+            ".source-btn",
+            ".sources",
+            "#player-sources",
+            "#source-list"
         )
 
-        val result = VideoPark.resolve(
-            embedUrl = iframeUrl,
-            pageReferer = detailUrl,
-            playerLabel = playerType,
-            trace = trace,
-            subtitleCallback = subtitleCallback,
-            callback = callback
-        )
+        selectors.forEach { selector ->
+            val matches = doc.select(selector)
+            Log.d(
+                tag,
+                "[$trace] PLAYER_AREA selector='$selector' count=${matches.size}"
+            )
 
-        Log.i(
-            tag,
-            "[$trace] [6/6] VideoPark result=$result type=$playerType"
-        )
+            matches.take(25).forEachIndexed { i, el ->
+                Log.d(
+                    tag,
+                    "[$trace] PLAYER_AREA_HTML selector='$selector' i=$i ${safeTextForLog(el.outerHtml(), 1200)}"
+                )
+            }
+        }
 
-        return result
+        doc.select("script").forEachIndexed { i, script ->
+            val scriptBody = script.data().ifBlank { script.html() }
+
+            if (
+                scriptBody.contains("jetplayer", ignoreCase = true) ||
+                scriptBody.contains("source_index", ignoreCase = true) ||
+                scriptBody.contains("data-source-index", ignoreCase = true) ||
+                scriptBody.contains("player_type", ignoreCase = true)
+            ) {
+                Log.d(
+                    tag,
+                    "[$trace] PLAYER_SCRIPT[$i] ${safeTextForLog(scriptBody, 1800)}"
+                )
+            }
+        }
     }
 
 
@@ -595,117 +635,108 @@ class JetFilmizle : MainAPI() {
     ): List<PlayerSource> {
         val found = linkedMapOf<String, PlayerSource>()
 
-        val selectors = listOf(
-            "[data-source-index]",
-            "[data-player-type][data-source-index]",
-            ".player-source-btn",
-            "button[data-source-index]",
-            "a[data-source-index]"
+        val elements = doc.select("[data-source-index]")
+
+        Log.i(
+            tag,
+            "[$trace] DISCOVERY data-source-index count=${elements.size}"
         )
 
-        selectors.forEach { selector ->
-            val elements = doc.select(selector)
+        elements.forEachIndexed { i, el ->
+            val index = el.attr("data-source-index").trim()
 
-            Log.d(
-                tag,
-                "[$trace] SOURCE_SCAN selector='$selector' count=${elements.size}"
+            val playerType =
+                attrFromSelfOrParents(el, "data-player-type")
+                    .ifBlank {
+                        attrFromSelfOrParents(el, "data-type")
+                    }
+
+            val nameCandidates = listOf(
+                el.attr("data-source-name"),
+                el.attr("data-name"),
+                el.attr("data-provider"),
+                el.attr("title"),
+                el.attr("aria-label"),
+                el.selectFirst(".name, .title, span")?.text().orEmpty(),
+                el.text(),
+                el.parent()?.text().orEmpty()
             )
 
-            elements.forEachIndexed { i, el ->
-                val index = el.attr("data-source-index").trim()
-                    .ifBlank {
-                        el.parent()?.attr("data-source-index")?.trim().orEmpty()
-                    }
+            val name = nameCandidates
+                .map { it.trim() }
+                .firstOrNull { it.isNotBlank() }
+                .orEmpty()
+                .ifBlank { "Unknown" }
 
-                val playerType = el.attr("data-player-type").trim()
-                    .ifBlank {
-                        el.parent()?.attr("data-player-type")?.trim().orEmpty()
-                    }
+            val raw = el.outerHtml()
 
-                val textCandidates = listOf(
-                    el.attr("data-source-name"),
-                    el.attr("data-name"),
-                    el.attr("title"),
-                    el.attr("aria-label"),
-                    el.text(),
-                    el.parent()?.text().orEmpty()
-                )
+            Log.i(
+                tag,
+                "[$trace] SOURCE_RAW[$i] index='$index' type='$playerType' name='${safeTextForLog(name, 200)}'"
+            )
+            Log.d(
+                tag,
+                "[$trace] SOURCE_HTML[$i] ${safeTextForLog(raw, 1400)}"
+            )
 
-                val name = textCandidates
-                    .map { it.trim() }
-                    .firstOrNull { it.isNotBlank() }
-                    .orEmpty()
-
-                val raw = buildString {
-                    append(el.outerHtml())
-                    append(" ")
-                    append(el.parent()?.outerHtml().orEmpty())
-                }
-
-                Log.d(
+            if (index.isBlank()) {
+                Log.w(
                     tag,
-                    "[$trace] SOURCE_RAW selector='$selector' i=$i index='$index' type='$playerType' name='$name' html=${safeTextForLog(raw, 650)}"
+                    "[$trace] SOURCE_SKIP[$i] reason=blank_index"
                 )
+                return@forEachIndexed
+            }
 
-                if (index.isBlank() || playerType.isBlank()) {
-                    return@forEachIndexed
-                }
-
-                val normalizedName = when {
-                    name.contains("oplay", true) -> "OPlay"
-                    name.contains("o play", true) -> "OPlay"
-                    raw.contains("/oplayer/", true) -> "OPlay"
-                    name.contains("vip", true) -> "Vip"
-                    name.contains("okru", true) ||
-                        name.contains("ok.ru", true) -> "OkRu"
-                    name.contains("stape", true) ||
-                        name.contains("streamtape", true) -> "STape"
-                    name.contains("streamhls", true) ||
-                        name.contains("stream hls", true) -> "StreamHLS"
-                    else -> name.ifBlank { "Unknown" }
-                }
-
-                val key = "$playerType|$index|$normalizedName"
-
-                found.putIfAbsent(
-                    key,
-                    PlayerSource(
-                        name = normalizedName,
-                        index = index,
-                        playerType = playerType,
-                        raw = raw
-                    )
+            if (playerType.isBlank()) {
+                Log.w(
+                    tag,
+                    "[$trace] SOURCE_SKIP[$i] reason=blank_player_type"
                 )
+                return@forEachIndexed
             }
-        }
 
-        // Bazı sürümlerde buton bilgileri HTML elementinde değil script/string içinde
-        // olabilir. Bu durumda kanıt amaçlı ilgili satırları logla; uydurma index üretme.
-        if (found.isEmpty()) {
-            doc.select("script").forEachIndexed { i, script ->
-                val body = script.data().ifBlank { script.html() }
+            val key = "$playerType|$index"
 
-                if (
-                    body.contains("source_index", true) ||
-                    body.contains("data-source-index", true) ||
-                    body.contains("oplay", true)
-                ) {
-                    Log.w(
-                        tag,
-                        "[$trace] SOURCE_SCRIPT_HINT i=$i ${safeTextForLog(body, 1000)}"
-                    )
-                }
-            }
+            found.putIfAbsent(
+                key,
+                PlayerSource(
+                    name = name,
+                    index = index,
+                    playerType = playerType,
+                    raw = raw
+                )
+            )
         }
 
         found.values.forEachIndexed { i, source ->
             Log.i(
                 tag,
-                "[$trace] SOURCE[$i] name='${source.name}' type='${source.playerType}' index='${source.index}'"
+                "[$trace] SOURCE[$i] name='${safeTextForLog(source.name, 180)}' type='${source.playerType}' index='${source.index}'"
             )
         }
 
         return found.values.toList()
+    }
+
+    private fun attrFromSelfOrParents(
+        element: org.jsoup.nodes.Element,
+        attr: String
+    ): String {
+        var current: org.jsoup.nodes.Element? = element
+        var depth = 0
+
+        while (current != null && depth < 6) {
+            val value = current.attr(attr).trim()
+
+            if (value.isNotBlank()) {
+                return value
+            }
+
+            current = current.parent()
+            depth++
+        }
+
+        return ""
     }
 
     private fun safeTextForLog(
