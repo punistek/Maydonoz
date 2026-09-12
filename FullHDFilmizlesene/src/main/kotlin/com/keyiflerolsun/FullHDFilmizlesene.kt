@@ -36,55 +36,77 @@ class FullHDFilmizlesene : MainAPI() {
     }
 
     override val mainPage = mainPageOf(
-        "${mainUrl}/"                  to "En Yeni Filmler",
-        "${mainUrl}/tur/aksiyon"       to "Aksiyon",
-        "${mainUrl}/tur/dram"          to "Dram",
-        "${mainUrl}/tur/gerilim"       to "Gerilim",
-        "${mainUrl}/tur/komedi"        to "Komedi",
-        "${mainUrl}/tur/korku"         to "Korku",
-        "${mainUrl}/tur/macera"        to "Macera",
-        "${mainUrl}/tur/fantastik"     to "Fantastik",
-        "${mainUrl}/tur/bilim-kurgu"   to "Bilim Kurgu",
-        "${mainUrl}/tur/gizem"         to "Gizem",
-        "${mainUrl}/tur/romantik"      to "Romantik",
-        "${mainUrl}/tur/suc"           to "Suç",
-        "${mainUrl}/tur/savas"         to "Savaş",
+        "${mainUrl}/"                                     to "En Yeni Filmler",
+        "${mainUrl}/filmizle/aksiyon-filmleri"            to "Aksiyon",
+        "${mainUrl}/filmizle/dram-filmler-izle"            to "Dram",
+        "${mainUrl}/filmizle/gerilim-filmleri"             to "Gerilim",
+        "${mainUrl}/filmizle/komedi-filmleri"              to "Komedi",
+        "${mainUrl}/filmizle/korku-filmleri"               to "Korku",
+        "${mainUrl}/filmizle/macera-filmleri"              to "Macera",
+        "${mainUrl}/filmizle/fantastik-filmler"            to "Fantastik",
+        "${mainUrl}/filmizle/bilim-kurgu-filmleri"         to "Bilim Kurgu",
+        "${mainUrl}/filmizle/gizem-filmleri"               to "Gizem",
+        "${mainUrl}/filmizle/romantik-filmler"             to "Romantik",
+        "${mainUrl}/filmizle/suc-filmleri"                 to "Suç",
+        "${mainUrl}/filmizle/savas-filmleri"               to "Savaş",
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val basePageUrl = normalizeSiteUrl(request.data)
+        val basePageUrl = normalizeSiteUrl(request.data).trimEnd('/')
         val pageUrl = when {
-            page <= 1 -> basePageUrl
-            basePageUrl.endsWith("/") -> "${basePageUrl}sayfa/${page}"
-            else -> "${basePageUrl}/sayfa/${page}"
+            page <= 1 -> if (basePageUrl == mainUrl) "${mainUrl}/" else basePageUrl
+            basePageUrl == mainUrl -> "${mainUrl}/yeni-filmler/${page}"
+            else -> "${basePageUrl}/${page}"
         }
 
         val document = app.get(pageUrl).document
-        val home = document.select("article.movie-card").mapNotNull { it.toSearchResult() }
 
-        Log.d("FHD", "MAIN page=$page url=$pageUrl cards=${home.size}")
-        return newHomePageResponse(request.name, home)
+        // Güncel HTML: <ul class="list"><li class="film"> ... <a class="tt"> ...
+        // Ana sayfadaki owl-carousel öne çıkanlarını değil, ana <main> listesini alıyoruz.
+        var cards = document.select("main .list > .film")
+        if (cards.isEmpty()) cards = document.select(".orta .list > .film")
+
+        val home = cards
+            .mapNotNull { it.toSearchResult() }
+            .distinctBy { it.url }
+
+        val hasNext = document.selectFirst(".sayfalama a.ileri") != null
+        Log.d("FHD", "MAIN page=$page url=$pageUrl cards=${home.size} hasNext=$hasNext")
+
+        return newHomePageResponse(request.name, home, hasNext = hasNext)
     }
 
     private fun Element.toSearchResult(): SearchResponse? {
-        val title = this.selectFirst(".film-title")?.text()?.trim()
-            ?.takeIf { it.isNotBlank() }
+        val link = this.selectFirst("a.tt[href]")
+            ?: this.selectFirst("a[href*='/film/']")
             ?: return null
 
-        val href = fixUrlNull(
-            this.selectFirst("a.mc-link")?.attr("href")
-                ?.takeIf { it.isNotBlank() }
-                ?: this.selectFirst("a")?.attr("href")
-        ) ?: return null
+        val hrefRaw = link.attr("href").trim()
+        if (hrefRaw.isBlank()) return null
 
-        val image = this.selectFirst("img.mc-afis")
-            ?: this.selectFirst("img")
+        val href = fixUrlNull(hrefRaw) ?: return null
 
-        val posterUrl = fixUrlNull(
-            image?.attr("data-src")?.takeIf { it.isNotBlank() }
-                ?: image?.attr("data-original")?.takeIf { it.isNotBlank() }
-                ?: image?.attr("src")
+        val title = sequenceOf(
+            this.selectFirst(".film-title")?.text(),
+            this.selectFirst(".film-tt")?.text(),
+            link.text(),
+            this.selectFirst("img.mafis")?.attr("alt"),
+            this.selectFirst("img")?.attr("alt")
         )
+            .mapNotNull { it?.trim() }
+            .map { it.removeSuffix(" izle").trim() }
+            .firstOrNull { it.isNotBlank() }
+            ?: return null
+
+        val image = this.selectFirst("img.mafis") ?: this.selectFirst("img")
+        val posterRaw = sequenceOf(
+            image?.attr("data-src"),
+            image?.attr("data-original"),
+            image?.attr("src")
+        ).mapNotNull { it?.trim() }
+            .firstOrNull { it.isNotBlank() && !it.startsWith("data:image") }
+
+        val posterUrl = posterRaw?.let { fixUrlNull(it) }
 
         return newMovieSearchResponse(title, href, TvType.Movie) {
             this.posterUrl = posterUrl
@@ -92,10 +114,32 @@ class FullHDFilmizlesene : MainAPI() {
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val searchUrl = "${mainUrl}/arama?q=${java.net.URLEncoder.encode(query, "UTF-8")}&page=1"
-        val document = app.get(searchUrl).document
+        val encoded = java.net.URLEncoder.encode(query, "UTF-8")
+        val candidates = listOf(
+            "${mainUrl}/arama?q=${encoded}&page=1",
+            "${mainUrl}/?s=${encoded}"
+        )
 
-        return document.select("article.movie-card").mapNotNull { it.toSearchResult() }
+        for (searchUrl in candidates) {
+            try {
+                val document = app.get(searchUrl).document
+                var cards = document.select("main .list > .film")
+                if (cards.isEmpty()) cards = document.select(".orta .list > .film")
+
+                val results = cards
+                    .mapNotNull { it.toSearchResult() }
+                    .distinctBy { it.url }
+
+                if (results.isNotEmpty()) {
+                    Log.d("FHD", "SEARCH url=$searchUrl results=${results.size}")
+                    return results
+                }
+            } catch (e: Exception) {
+                Log.w("FHD", "SEARCH_FAIL url=$searchUrl err=${e.message}")
+            }
+        }
+
+        return emptyList()
     }
 
     override suspend fun quickSearch(query: String): List<SearchResponse> = search(query)
@@ -107,44 +151,94 @@ class FullHDFilmizlesene : MainAPI() {
 
         val document = app.get(canonicalUrl).document
 
-        val title = document.selectFirst(".film-title-h1")
-            ?.text()
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
-            ?: return null
-
-        val poster = fixUrlNull(
-            document.selectFirst(".detail-poster img")
-                ?.attr("src")
-                ?.takeIf { it.isNotBlank() }
+        // Güncel detay sayfasında başlık .izle-titles h1 altında.
+        // Meta/title fallback'leri, HTML class değişse bile load()'ın boş dönmesini engeller.
+        val title = sequenceOf(
+            document.selectFirst(".izle-titles h1")?.text(),
+            document.selectFirst(".single header h1")?.text(),
+            document.selectFirst("h1")?.text(),
+            document.selectFirst("meta[property=og:title]")?.attr("content"),
+            document.selectFirst("meta[name=twitter:title]")?.attr("content"),
+            document.title()
         )
+            .mapNotNull { it?.trim() }
+            .map { raw ->
+                raw
+                    .replace(Regex("\\s*Film\\s+izle.*$", RegexOption.IGNORE_CASE), "")
+                    .replace(Regex("\\s*[|–—]\\s*FullHD.*$", RegexOption.IGNORE_CASE), "")
+                    .trim()
+            }
+            .firstOrNull { it.isNotBlank() }
 
-        val year = document
-            .selectFirst(".film-facts a[href^='/yil/']")
-            ?.text()
-            ?.trim()
-            ?.toIntOrNull()
+        if (title.isNullOrBlank()) {
+            Log.e(
+                "FHD",
+                "LOAD_TITLE_NOT_FOUND url=$canonicalUrl h1=${document.selectFirst("h1")?.text().orEmpty()} " +
+                    "og=${document.selectFirst("meta[property=og:title]")?.attr("content").orEmpty()} " +
+                    "docTitle=${document.title()}"
+            )
+            return null
+        }
 
-        val description = document
-            .selectFirst(".detail-synopsis")
-            ?.text()
-            ?.trim()
+        val posterElement = document.selectFirst(".detay-sol img")
+            ?: document.selectFirst(".detail-poster img")
+            ?: document.selectFirst(".single img.mafis")
+            ?: document.selectFirst(".single img[alt]")
+
+        val posterRaw = sequenceOf(
+            posterElement?.attr("data-src"),
+            posterElement?.attr("data-original"),
+            posterElement?.attr("src"),
+            document.selectFirst("meta[property=og:image]")?.attr("content")
+        ).mapNotNull { it?.trim() }
+            .firstOrNull { it.isNotBlank() && !it.startsWith("data:image") }
+
+        val poster = posterRaw?.let { fixUrlNull(it) }
+
+        val year = document.select("a[href*='/yil/']")
+            .asSequence()
+            .map { it.text().trim() }
+            .mapNotNull { Regex("(19|20)\\d{2}").find(it)?.value?.toIntOrNull() }
+            .firstOrNull()
+
+        val description = sequenceOf(
+            document.selectFirst(".detay-sag .ozet-ic")?.text(),
+            document.selectFirst(".ozet-ic")?.text(),
+            document.selectFirst(".detail-synopsis")?.text(),
+            document.selectFirst("[itemprop=description]")?.text(),
+            document.selectFirst("meta[property=og:description]")?.attr("content"),
+            document.selectFirst("meta[name=description]")?.attr("content")
+        )
+            .mapNotNull { it?.trim() }
+            .firstOrNull { it.isNotBlank() }
 
         val tags = document
-            .select(".film-facts a[href^='/tur/']")
+            .select("a[href*='/filmizle/']")
             .map { it.text().trim() }
-            .filter { it.isNotBlank() }
+            .filter { text ->
+                text.isNotBlank() &&
+                    !text.equals("Türkçe Dublaj", true) &&
+                    !text.equals("Türkçe Altyazılı", true) &&
+                    !text.equals("Yabancı Filmler", true) &&
+                    !text.equals("Yerli Filmler", true) &&
+                    !text.contains("1080p", true) &&
+                    !text.equals("4K", true)
+            }
             .distinct()
+            .take(12)
 
-        val score = document
-            .selectFirst(".ib-score")
-            ?.text()
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
+        val scoreText = sequenceOf(
+            document.selectFirst(".imdb-puan")?.text(),
+            document.selectFirst(".imdb")?.text(),
+            document.selectFirst(".ib-score")?.text()
+        ).mapNotNull { it?.trim() }.firstOrNull { it.isNotBlank() }
+
+        val score = scoreText
+            ?.let { Regex("\\d+(?:[.,]\\d+)?").find(it)?.value?.replace(',', '.') }
             ?.let { Score.from10(it) }
 
         val duration = Regex("""(\d{2,3})\s*(?:dk|dakika)""", RegexOption.IGNORE_CASE)
-            .find(document.selectFirst(".film-facts")?.text().orEmpty())
+            .find(document.text())
             ?.groupValues
             ?.getOrNull(1)
             ?.toIntOrNull()
@@ -156,17 +250,27 @@ class FullHDFilmizlesene : MainAPI() {
             ?.replace("\\/", "/")
 
         val actors = document
-            .select("a[href^='/oyuncu/'], a[href*='/oyuncu/']")
+            .select("a[href*='/oyuncu/']")
             .map { it.text().trim() }
             .filter { it.isNotBlank() }
             .distinct()
             .map { Actor(it) }
 
-        val recommendations = document
-            .select("article.movie-card")
+        var recommendationCards = document.select(".onerilen-filmler .film, .benzer-filmler .film, .related .film")
+        if (recommendationCards.isEmpty()) {
+            recommendationCards = document.select("main .list > .film")
+        }
+
+        val recommendations = recommendationCards
             .mapNotNull { it.toSearchResult() }
-            .filter { it.url != canonicalUrl }
+            .filter { normalizeSiteUrl(it.url).trimEnd('/') != canonicalUrl.trimEnd('/') }
             .distinctBy { it.url }
+
+        Log.d(
+            "FHD",
+            "LOAD_OK title=$title poster=${!poster.isNullOrBlank()} year=${year ?: 0} " +
+                "duration=${duration ?: 0} tags=${tags.size} actors=${actors.size} recs=${recommendations.size}"
+        )
 
         return newMovieLoadResponse(title, canonicalUrl, TvType.Movie, canonicalUrl) {
             this.posterUrl = poster
