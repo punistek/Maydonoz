@@ -106,14 +106,13 @@ class DiziSol : MainAPI() {
 
                 seasonData.episodes.orEmpty().forEach { ep ->
                     val epNo = ep.episodeNumber ?: return@forEach
-                    episodes += Episode(
-                        data = EpisodeData(media.tmdbId, seasonNo, epNo).toJson(),
-                        name = ep.name,
-                        season = seasonNo,
-                        episode = epNo,
-                        posterUrl = ep.stillPath?.toImageUrl("w780"),
-                        description = ep.overview,
-                    )
+                    episodes += newEpisode(EpisodeData(media.tmdbId, seasonNo, epNo).toJson()) {
+                        this.name = ep.name
+                        this.season = seasonNo
+                        this.episode = epNo
+                        this.posterUrl = ep.stillPath?.toImageUrl("w780")
+                        this.description = ep.overview
+                    }
                 }
             }
 
@@ -127,7 +126,7 @@ class DiziSol : MainAPI() {
             this.year = year
             this.plot = detail.overview
             this.tags = tags
-            this.rating = detail.voteAverage?.let { (it * 10).toInt() }
+            this.score = detail.voteAverage?.let { Score.from10(it.toString()) }
         }
     }
 
@@ -177,10 +176,10 @@ class DiziSol : MainAPI() {
         val subtitleEn = resolved?.subtitleEn ?: episodeInfo.subtitleEn
 
         subtitleTr?.takeIf { it.isNotBlank() }?.let {
-            subtitleCallback(SubtitleFile("Türkçe", it))
+            subtitleCallback(newSubtitleFile("Türkçe", it))
         }
         subtitleEn?.takeIf { it.isNotBlank() }?.let {
-            subtitleCallback(SubtitleFile("English", it))
+            subtitleCallback(newSubtitleFile("English", it))
         }
 
         val playbackHeaders = mapOf(
@@ -206,10 +205,10 @@ class DiziSol : MainAPI() {
             .filter { it.isActive != false && !it.m3u8Url.isNullOrBlank() && it.m3u8Url != streamUrl }
             .forEachIndexed { index, source ->
                 source.subtitleTr?.takeIf { it.isNotBlank() }?.let {
-                    subtitleCallback(SubtitleFile("Türkçe - ${source.provider ?: "Kaynak ${index + 2}"}", it))
+                    subtitleCallback(newSubtitleFile("Türkçe - ${source.provider ?: "Kaynak ${index + 2}"}", it))
                 }
                 source.subtitleEn?.takeIf { it.isNotBlank() }?.let {
-                    subtitleCallback(SubtitleFile("English - ${source.provider ?: "Source ${index + 2}"}", it))
+                    subtitleCallback(newSubtitleFile("English - ${source.provider ?: "Source ${index + 2}"}", it))
                 }
                 callback(
                     newExtractorLink(
