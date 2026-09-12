@@ -657,6 +657,45 @@ class Dizipal : MainAPI() {
             val hlsUrls = extractHlsUrls(embedResponse.text)
             val referer = originOf(embedUrl)
 
+            // Embed/JWPlayer HTML içinde doğrudan verilen VTT/SRT/ASS/SSA altyazıları.
+            val subtitleTracks = linkedMapOf<String, SubtitleTrack>()
+            extractSubtitleTracks(embedResponse.text, embedUrl).forEach { track ->
+                subtitleTracks.putIfAbsent(track.url, track)
+            }
+
+            // HLS master içindeki EXT-X-MEDIA AUDIO/SUBTITLES gruplarını da tara.
+            // AUDIO track'leri master playlist üzerinden Media3/CloudStream'e bırakıyoruz;
+            // master URL'yi child playlist'e çevirmiyoruz ki çoklu ses kaybolmasın.
+            for (hls in hlsUrls) {
+                val masterText = runCatching {
+                    app.get(
+                        hls,
+                        headers = mapOf(
+                            "User-Agent" to USER_AGENT,
+                            "Referer" to referer
+                        ),
+                        referer = referer,
+                        timeout = 15L
+                    ).text
+                }.getOrNull()
+
+                if (!masterText.isNullOrBlank()) {
+                    extractHlsSubtitleTracks(masterText, hls).forEach { track ->
+                        subtitleTracks.putIfAbsent(track.url, track)
+                    }
+                }
+            }
+
+            // CloudStream altyazı menüsüne gönder.
+            for (track in subtitleTracks.values) {
+                subtitleCallback(
+                    SubtitleFile(
+                        track.label,
+                        track.url
+                    )
+                )
+            }
+
             for (hls in hlsUrls) {
                 callback(
                     newExtractorLink(
@@ -768,6 +807,183 @@ class Dizipal : MainAPI() {
             .replace("\\/", "/")
             .trim()
             .takeIf { it.startsWith("http") }
+    }
+
+    private data class SubtitleTrack(
+        val label: String,
+        val url: String
+    )
+
+    private fun absoluteMediaUrl(baseUrl: String, rawUrl: String): String? {
+        val raw = rawUrl
+            .trim()
+            .replace("\\/", "/")
+            .replace("&amp;", "&")
+
+        if (raw.isBlank()) return null
+
+        return runCatching {
+            URI(baseUrl).resolve(raw).toString()
+        }.getOrElse {
+            raw.takeIf { it.startsWith("http://") || it.startsWith("https://") }
+        }
+    }
+
+    private fun subtitleLabel(
+        explicitLabel: String?,
+        language: String?,
+        url: String
+    ): String {
+        val label = explicitLabel?.trim().orEmpty()
+        val lang = language?.trim().orEmpty()
+
+        if (label.isNotBlank()) {
+            return when {
+                label.equals("tr", true) || label.contains("tur", true) -> "Türkçe"
+                label.equals("en", true) || label.contains("eng", true) -> "English"
+                label.contains("forced", true) -> "Forced"
+                else -> label
+            }
+        }
+
+        if (lang.isNotBlank()) {
+            return when {
+                lang.equals("tr", true) || lang.contains("tur", true) -> "Türkçe"
+                lang.equals("en", true) || lang.contains("eng", true) -> "English"
+                lang.contains("forced", true) -> "Forced"
+                else -> lang
+            }
+        }
+
+        val lower = url.lowercase()
+        return when {
+            Regex("""(?:^|[_\-.])(tur|tr)(?:[_\-.]|$)""").containsMatchIn(lower) -> "Türkçe"
+            Regex("""(?:^|[_\-.])(eng|en)(?:[_\-.]|$)""").containsMatchIn(lower) -> "English"
+            lower.contains("forced") -> "Forced"
+            else -> "Altyazı"
+        }
+    }
+
+    private fun extractSubtitleTracks(
+        html: String,
+        baseUrl: String
+    ): List<SubtitleTrack> {
+        val out = linkedMapOf<String, SubtitleTrack>()
+
+        fun add(rawUrl: String, label: String? = null, language: String? = null) {
+            val url = absoluteMediaUrl(baseUrl, rawUrl) ?: return
+            if (
+                !url.contains(".vtt", ignoreCase = true) &&
+                !url.contains(".srt", ignoreCase = true) &&
+                !url.contains(".ass", ignoreCase = true) &&
+                !url.contains(".ssa", ignoreCase = true)
+            ) return
+
+            out.putIfAbsent(
+                url,
+                SubtitleTrack(
+                    label = subtitleLabel(label, language, url),
+                    url = url
+                )
+            )
+        }
+
+        // JWPlayer: { file: "...vtt", label: "Türkçe", kind: "captions" }
+        val objectRegex = Regex(
+            """\{[^{}]{0,900}?(?:kind\s*:\s*["'](?:captions|subtitles)["'])[^{}]{0,900}?\}""",
+            setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+        )
+
+        objectRegex.findAll(html).forEach { match ->
+            val block = match.value
+
+            val file = Regex(
+                """(?:file|src)\s*:\s*["']([^"']+)["']""",
+                RegexOption.IGNORE_CASE
+            ).find(block)?.groupValues?.getOrNull(1)
+
+            val label = Regex(
+                """label\s*:\s*["']([^"']+)["']""",
+                RegexOption.IGNORE_CASE
+            ).find(block)?.groupValues?.getOrNull(1)
+
+            val language = Regex(
+                """(?:language|lang)\s*:\s*["']([^"']+)["']""",
+                RegexOption.IGNORE_CASE
+            ).find(block)?.groupValues?.getOrNull(1)
+
+            if (!file.isNullOrBlank()) add(file, label, language)
+        }
+
+        // FormationFeed gibi sayfalarda çıplak VTT/SRT URL'si.
+        Regex(
+            """((?:https?:)?//[^\s"'<>\\]+?\.(?:vtt|srt|ass|ssa)(?:\?[^\s"'<>\\]*)?)""",
+            RegexOption.IGNORE_CASE
+        ).findAll(html).forEach { match ->
+            add(match.groupValues[1])
+        }
+
+        // Relative subtitle URL.
+        Regex(
+            """["']([^"']+?\.(?:vtt|srt|ass|ssa)(?:\?[^"']*)?)["']""",
+            RegexOption.IGNORE_CASE
+        ).findAll(html).forEach { match ->
+            add(match.groupValues[1])
+        }
+
+        return out.values.toList()
+    }
+
+    private fun parseHlsAttributes(line: String): Map<String, String> {
+        val payload = line.substringAfter(":", "")
+        if (payload.isBlank()) return emptyMap()
+
+        val out = linkedMapOf<String, String>()
+        val regex = Regex("""([A-Z0-9-]+)=("(?:[^"\\]|\\.)*"|[^,]*)""", RegexOption.IGNORE_CASE)
+
+        regex.findAll(payload).forEach { m ->
+            val key = m.groupValues[1].uppercase()
+            var value = m.groupValues[2].trim()
+            if (value.length >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+                value = value.substring(1, value.length - 1)
+            }
+            out[key] = value
+        }
+
+        return out
+    }
+
+    private fun extractHlsSubtitleTracks(
+        masterText: String,
+        masterUrl: String
+    ): List<SubtitleTrack> {
+        val out = linkedMapOf<String, SubtitleTrack>()
+
+        masterText.lineSequence().forEach { rawLine ->
+            val line = rawLine.trim()
+            if (!line.startsWith("#EXT-X-MEDIA:", ignoreCase = true)) return@forEach
+
+            val attrs = parseHlsAttributes(line)
+            if (!attrs["TYPE"].equals("SUBTITLES", ignoreCase = true)) return@forEach
+
+            val uri = attrs["URI"].orEmpty()
+            if (uri.isBlank()) return@forEach
+
+            val url = absoluteMediaUrl(masterUrl, uri) ?: return@forEach
+            out.putIfAbsent(
+                url,
+                SubtitleTrack(
+                    label = subtitleLabel(
+                        attrs["NAME"],
+                        attrs["LANGUAGE"],
+                        url
+                    ),
+                    url = url
+                )
+            )
+        }
+
+        return out.values.toList()
     }
 
     private fun extractHlsUrls(html: String): List<String> {
