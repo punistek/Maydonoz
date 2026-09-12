@@ -1,7 +1,7 @@
 version = 19
 
 cloudstream {
-    authors     = listOf("keyiflerolsun")
+    authors     = listOf("PARS")
     language    = "tr"
     description = "TLC tr"
 
