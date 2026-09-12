@@ -3,7 +3,7 @@ package com.parsspor1
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.LoadResponse.Companion.addPoster
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.ExtractorLinkType
@@ -14,9 +14,10 @@ import org.jsoup.nodes.Element
 import java.net.URI
 
 class PARSSPOR1 : MainAPI() {
+    private val jsonMapper = ObjectMapper()
     override var mainUrl = "https://www.papazsports1022.pro"
     override var name = "PARS SPOR 1"
-    override val lang = "tr"
+    override var lang = "tr"
     override val hasMainPage = true
     override val hasQuickSearch = true
     override val supportedTypes = setOf(TvType.Live)
@@ -124,7 +125,7 @@ class PARSSPOR1 : MainAPI() {
             val ss = matchSources(e.attr("data-source"))
             if (title.isBlank() || ss.isEmpty()) return@mapNotNull null
             val d = ItemData("match", title, e.attr("data-url"), sources = ss, poster = e.poster(base))
-            newMovieSearchResponse(title, d.toJson(), TvType.Live) { posterUrl = d.poster }
+            newMovieSearchResponse(title, jsonMapper.writeValueAsString(d), TvType.Live) { posterUrl = d.poster }
         }
 
     private fun tv(doc: Document, base: String): List<SearchResponse> =
@@ -133,7 +134,7 @@ class PARSSPOR1 : MainAPI() {
             val source = e.attr("data-source").trim()
             if (title.isBlank() || source.isBlank()) return@mapNotNull null
             val d = ItemData("tv", title, e.attr("data-url"), e.attr("data-target"), source, poster = e.poster(base))
-            newMovieSearchResponse(title, d.toJson(), TvType.Live) { posterUrl = d.poster }
+            newMovieSearchResponse(title, jsonMapper.writeValueAsString(d), TvType.Live) { posterUrl = d.poster }
         }.distinctBy { it.name.lowercase() }
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
@@ -152,7 +153,7 @@ class PARSSPOR1 : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val d = parseJson<ItemData>(url)
-        return newMovieLoadResponse(d.title, url, TvType.Live, url) { addPoster(d.poster) }
+        return newMovieLoadResponse(d.title, url, TvType.Live, url) { posterUrl = d.poster }
     }
 
     private suspend fun emitHls(label: String, url: String, base: String, cb: (ExtractorLink)->Unit) {
