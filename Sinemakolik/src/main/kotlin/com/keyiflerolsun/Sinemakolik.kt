@@ -1,14 +1,21 @@
 package com.keyiflerolsun
 
 import android.util.Log
+import android.util.Base64 as AndroidBase64
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
+import org.json.JSONObject
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Base64
+import java.net.URI
+import java.security.MessageDigest
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 class Sinemakolik : MainAPI() {
     override var mainUrl = "https://sinemakolik.com"
@@ -252,6 +259,325 @@ class Sinemakolik : MainAPI() {
         return out.values.toList()
     }
 
+
+    // ---------------------------------------------------------------------
+    // VIDMIXI / BEPLAYER - VIDEO + AUDIO + SUBTITLE
+    // ---------------------------------------------------------------------
+
+    private fun evpBytesToKey(
+        password: ByteArray,
+        salt: ByteArray
+    ): Pair<ByteArray, ByteArray> {
+        val all = ArrayList<Byte>()
+        var previous = ByteArray(0)
+
+        while (all.size < 48) {
+            val md5 = MessageDigest.getInstance("MD5")
+            md5.update(previous)
+            md5.update(password)
+            md5.update(salt)
+            previous = md5.digest()
+            previous.forEach { all.add(it) }
+        }
+
+        val bytes = all.toByteArray()
+        return bytes.copyOfRange(0, 32) to bytes.copyOfRange(32, 48)
+    }
+
+    private fun decryptBePlayer(
+        password: String,
+        rawJson: String
+    ): JSONObject? {
+        return runCatching {
+            val json = JSONObject(
+                rawJson
+                    .replace("\\/", "/")
+                    .replace("\\\"", "\"")
+            )
+
+            val cipherText = AndroidBase64.decode(
+                json.getString("ct"),
+                AndroidBase64.DEFAULT
+            )
+
+            val salt = json.getString("s")
+                .chunked(2)
+                .map { it.toInt(16).toByte() }
+                .toByteArray()
+
+            val (key, iv) = evpBytesToKey(
+                password.toByteArray(Charsets.UTF_8),
+                salt
+            )
+
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+            cipher.init(
+                Cipher.DECRYPT_MODE,
+                SecretKeySpec(key, "AES"),
+                IvParameterSpec(iv)
+            )
+
+            JSONObject(
+                String(
+                    cipher.doFinal(cipherText),
+                    Charsets.UTF_8
+                )
+            )
+        }.getOrNull()
+    }
+
+    private fun absoluteUrl(
+        baseUrl: String,
+        rawUrl: String
+    ): String? {
+        val raw = rawUrl
+            .trim()
+            .replace("\\/", "/")
+            .replace("&amp;", "&")
+
+        if (raw.isBlank()) return null
+
+        return runCatching {
+            URI(baseUrl).resolve(raw).toString()
+        }.getOrElse {
+            raw.takeIf {
+                it.startsWith("http://") ||
+                    it.startsWith("https://")
+            }
+        }
+    }
+
+    private fun subtitleLabel(
+        label: String?,
+        language: String?,
+        url: String
+    ): String {
+        val l = label?.trim().orEmpty()
+        val langValue = language?.trim().orEmpty()
+
+        if (l.isNotBlank()) {
+            return when {
+                l.equals("tr", true) ||
+                    l.contains("tur", true) ||
+                    l.contains("türk", true) -> "Türkçe"
+
+                l.equals("en", true) ||
+                    l.contains("eng", true) -> "English"
+
+                l.contains("forced", true) -> "Forced"
+                else -> l
+            }
+        }
+
+        if (langValue.isNotBlank()) {
+            return when {
+                langValue.equals("tr", true) ||
+                    langValue.contains("tur", true) -> "Türkçe"
+
+                langValue.equals("en", true) ||
+                    langValue.contains("eng", true) -> "English"
+
+                langValue.contains("forced", true) -> "Forced"
+                else -> langValue
+            }
+        }
+
+        val lower = url.lowercase()
+        return when {
+            Regex("""(?:^|[_\-.])(tur|tr)(?:[_\-.]|$)""")
+                .containsMatchIn(lower) -> "Türkçe"
+
+            Regex("""(?:^|[_\-.])(eng|en)(?:[_\-.]|$)""")
+                .containsMatchIn(lower) -> "English"
+
+            lower.contains("forced") -> "Forced"
+            else -> "Altyazı"
+        }
+    }
+
+    private suspend fun emitMasterSubtitles(
+        masterUrl: String,
+        referer: String,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        emittedSubtitleUrls: MutableSet<String>
+    ) {
+        val masterText = runCatching {
+            app.get(
+                masterUrl,
+                headers = headers(referer),
+                referer = referer
+            ).text
+        }.getOrNull() ?: return
+
+        val attrRegex = Regex(
+            """([A-Z0-9-]+)=("(?:[^"\\]|\\.)*"|[^,]*)""",
+            RegexOption.IGNORE_CASE
+        )
+
+        masterText.lineSequence().forEach { rawLine ->
+            val line = rawLine.trim()
+            if (!line.startsWith("#EXT-X-MEDIA:", ignoreCase = true)) {
+                return@forEach
+            }
+
+            val attrs = linkedMapOf<String, String>()
+            attrRegex.findAll(line.substringAfter(":")).forEach { match ->
+                val key = match.groupValues[1].uppercase()
+                var value = match.groupValues[2].trim()
+                if (
+                    value.length >= 2 &&
+                    value.startsWith("\"") &&
+                    value.endsWith("\"")
+                ) {
+                    value = value.substring(1, value.length - 1)
+                }
+                attrs[key] = value
+            }
+
+            // AUDIO gruplarına dokunmuyoruz.
+            // Master playlist'i aynen player'a verdiğimiz için Media3 seçebilir.
+            if (!attrs["TYPE"].equals("SUBTITLES", ignoreCase = true)) {
+                return@forEach
+            }
+
+            val rawUri = attrs["URI"].orEmpty()
+            val subtitleUrl = absoluteUrl(masterUrl, rawUri) ?: return@forEach
+
+            if (emittedSubtitleUrls.add(subtitleUrl)) {
+                subtitleCallback(
+                    SubtitleFile(
+                        subtitleLabel(
+                            attrs["NAME"],
+                            attrs["LANGUAGE"],
+                            subtitleUrl
+                        ),
+                        subtitleUrl
+                    )
+                )
+
+                Log.i(
+                    "SNMK",
+                    "VIDMIXI HLS SUBTITLE " +
+                        "label=${attrs["NAME"]} lang=${attrs["LANGUAGE"]} " +
+                        "url=$subtitleUrl"
+                )
+            }
+        }
+    }
+
+    private suspend fun resolveVidMixiBePlayer(
+        source: SourceEmbed,
+        parentUrl: String,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        val embedText = runCatching {
+            app.get(
+                source.url,
+                headers = headers(parentUrl),
+                referer = parentUrl
+            ).text
+        }.getOrElse {
+            Log.e(
+                "SNMK",
+                "VIDMIXI BEPLAYER embed failed " +
+                    "${it::class.simpleName}: ${it.message}"
+            )
+            return false
+        }
+
+        val call = Regex(
+            """bePlayer\s*\(\s*["']([^"']+)["']\s*,\s*["'](\{.*?\})["']""",
+            setOf(
+                RegexOption.IGNORE_CASE,
+                RegexOption.DOT_MATCHES_ALL
+            )
+        ).find(embedText) ?: return false
+
+        val password = call.groupValues[1]
+        val rawConfig = call.groupValues[2]
+            .replace("\\'", "'")
+            .replace("\\\"", "\"")
+
+        val config = decryptBePlayer(
+            password = password,
+            rawJson = rawConfig
+        ) ?: run {
+            Log.e("SNMK", "VIDMIXI BEPLAYER decrypt failed source=${source.label}")
+            return false
+        }
+
+        val mediaRaw = config.optString("video_location")
+        val mediaUrl = absoluteUrl(source.url, mediaRaw)
+            ?: return false
+
+        val emittedSubtitleUrls = linkedSetOf<String>()
+
+        val subtitles = config.optJSONArray("strSubtitles")
+        if (subtitles != null) {
+            for (i in 0 until subtitles.length()) {
+                val item = subtitles.optJSONObject(i) ?: continue
+                val file = item.optString("file").trim()
+                if (file.isBlank()) continue
+
+                val subtitleUrl = absoluteUrl(
+                    source.url,
+                    file
+                ) ?: continue
+
+                if (!emittedSubtitleUrls.add(subtitleUrl)) continue
+
+                val label = subtitleLabel(
+                    item.optString("label"),
+                    item.optString("language"),
+                    subtitleUrl
+                )
+
+                subtitleCallback(
+                    SubtitleFile(
+                        label,
+                        subtitleUrl
+                    )
+                )
+
+                Log.i(
+                    "SNMK",
+                    "VIDMIXI SUBTITLE " +
+                        "source=${source.label} label=$label url=$subtitleUrl"
+                )
+            }
+        }
+
+        // HLS master'da ayrıca SUBTITLES varsa onları da CloudStream'e ver.
+        // AUDIO track'leri master URL korunarak Media3'e bırakılır.
+        emitMasterSubtitles(
+            masterUrl = mediaUrl,
+            referer = source.url,
+            subtitleCallback = subtitleCallback,
+            emittedSubtitleUrls = emittedSubtitleUrls
+        )
+
+        callback(
+            newExtractorLink(
+                source = name,
+                name = "${name} - ${source.label}",
+                url = mediaUrl,
+                type = ExtractorLinkType.M3U8
+            ) {
+                this.referer = source.url
+                this.quality = Qualities.Unknown.value
+            }
+        )
+
+        Log.i(
+            "SNMK",
+            "VIDMIXI BEPLAYER OK source=${source.label} " +
+                "subtitles=${emittedSubtitleUrls.size} media=$mediaUrl"
+        )
+
+        return true
+    }
+
     override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
@@ -285,27 +611,51 @@ class Sinemakolik : MainAPI() {
             var sourceEmitted = 0
             Log.i("SNMK", "VIDMIXI TRY id=${source.id} label=${source.label} url=${source.url}")
 
-            runCatching {
-                loadExtractor(
-                    source.url,
-                    data,
-                    subtitleCallback
-                ) { link ->
-                    sourceEmitted++
-                    emitted++
-                    Log.i(
-                        "SNMK",
-                        "VIDMIXI LINK label=${source.label} host=" +
-                            runCatching { java.net.URI(link.url).host }.getOrNull() +
-                            " path=" + runCatching { java.net.URI(link.url).path }.getOrNull()
-                    )
-                    callback(link)
-                }
-            }.onFailure {
+            val customResolved = runCatching {
+                resolveVidMixiBePlayer(
+                    source = source,
+                    parentUrl = data,
+                    subtitleCallback = subtitleCallback,
+                    callback = { link ->
+                        sourceEmitted++
+                        emitted++
+                        callback(link)
+                    }
+                )
+            }.getOrElse {
                 Log.e(
                     "SNMK",
-                    "VIDMIXI FAIL label=${source.label} ${it::class.simpleName}: ${it.message}"
+                    "VIDMIXI BEPLAYER FAIL label=${source.label} " +
+                        "${it::class.simpleName}: ${it.message}"
                 )
+                false
+            }
+
+            // BePlayer yapısı değişirse mevcut CloudStream extractor fallback'i korunuyor.
+            if (!customResolved) {
+                runCatching {
+                    loadExtractor(
+                        source.url,
+                        data,
+                        subtitleCallback
+                    ) { link ->
+                        sourceEmitted++
+                        emitted++
+                        Log.i(
+                            "SNMK",
+                            "VIDMIXI FALLBACK LINK label=${source.label} host=" +
+                                runCatching { java.net.URI(link.url).host }.getOrNull() +
+                                " path=" + runCatching { java.net.URI(link.url).path }.getOrNull()
+                        )
+                        callback(link)
+                    }
+                }.onFailure {
+                    Log.e(
+                        "SNMK",
+                        "VIDMIXI FAIL label=${source.label} " +
+                            "${it::class.simpleName}: ${it.message}"
+                    )
+                }
             }
 
             Log.i("SNMK", "VIDMIXI RESULT label=${source.label} links=$sourceEmitted")
