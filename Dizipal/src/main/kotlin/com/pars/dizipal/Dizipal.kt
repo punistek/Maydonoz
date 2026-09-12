@@ -488,10 +488,17 @@ class Dizipal : MainAPI() {
                 ?.value?.toIntOrNull()
 
         val episodeAnchors = doc.select(
-            ".episode-panel a.episode-item[href], " +
+            // Dizipal'in güncel dizi detay yapısı (Magarsus vb.)
+            ".detail-episode-list a.detail-episode-item[href], " +
+                "a.detail-episode-item[href*='/bolum/'], " +
+                // Eski/alternatif Dizipal bölüm yapıları
+                ".episode-panel a.episode-item[href], " +
                 "a.episode-item[href*='/bolum/'], " +
+                // Son güvenli fallback
                 "a[href*='/bolum/']"
-        ).distinctBy { it.attr("href") }
+        ).filter { a ->
+            a.attr("href").contains("/bolum/", ignoreCase = true)
+        }.distinctBy { it.attr("href") }
 
         val isSeries = current.contains("/dizi/") || episodeAnchors.isNotEmpty()
 
@@ -582,9 +589,39 @@ class Dizipal : MainAPI() {
     ): Boolean {
         val (base, response) = getWithDomain(data)
         val detailUrl = currentUrl(data, base)
-        val doc = response.document
+        var doc = response.document
+        var playableUrl = detailUrl
 
-        val container = doc.selectFirst("#videoContainer[data-cfg]") ?: return false
+        var container = doc.selectFirst("#videoContainer[data-cfg]")
+
+        // Dizi ana detay URL'si yanlışlıkla doğrudan loadLinks'e gelirse
+        // player aramak yerine sayfadaki ilk gerçek bölüm URL'sine geç.
+        if (container == null && pathOf(detailUrl).contains("/dizi/")) {
+            val firstEpisode = doc.selectFirst(
+                ".detail-episode-list a.detail-episode-item[href*='/bolum/'], " +
+                    "a.detail-episode-item[href*='/bolum/'], " +
+                    "a[href*='/bolum/']"
+            )?.attr("href")?.takeIf { it.isNotBlank() }
+
+            if (firstEpisode != null) {
+                playableUrl = currentUrl(firstEpisode, base)
+                val episodeResponse = runCatching {
+                    app.get(
+                        playableUrl,
+                        headers = mapOf("User-Agent" to USER_AGENT),
+                        referer = detailUrl,
+                        timeout = 15L
+                    )
+                }.getOrNull()
+
+                if (episodeResponse != null) {
+                    doc = episodeResponse.document
+                    container = doc.selectFirst("#videoContainer[data-cfg]")
+                }
+            }
+        }
+
+        container ?: return false
         val cfg = container.attr("data-cfg").trim()
         if (cfg.isBlank()) return false
 
@@ -596,7 +633,7 @@ class Dizipal : MainAPI() {
         // 2) Sitenin kendi /ajax dispatcher akışını da dene.
         resolveAjaxEmbed(
             base = base,
-            detailUrl = detailUrl,
+            detailUrl = playableUrl,
             container = container,
             cfg = cfg
         )?.let { embedCandidates += it }
@@ -612,7 +649,7 @@ class Dizipal : MainAPI() {
                 app.get(
                     embedUrl,
                     headers = mapOf("User-Agent" to USER_AGENT),
-                    referer = detailUrl,
+                    referer = playableUrl,
                     timeout = 15L
                 )
             }.getOrNull() ?: continue
@@ -642,7 +679,7 @@ class Dizipal : MainAPI() {
             if (emitted) return true
 
             // Tanınmayan başka embed gelirse CloudStream extractorlarını dene.
-            loadExtractor(embedUrl, detailUrl, subtitleCallback) {
+            loadExtractor(embedUrl, playableUrl, subtitleCallback) {
                 emitted = true
                 callback(it)
             }
