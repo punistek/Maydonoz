@@ -156,11 +156,32 @@ class PARSSPOR1 : MainAPI() {
         return newMovieLoadResponse(d.title, url, TvType.Live, url) { posterUrl = d.poster }
     }
 
-    private suspend fun emitHls(label: String, url: String, base: String, cb: (ExtractorLink)->Unit) {
+    private suspend fun emitHls(
+        label: String,
+        url: String,
+        base: String,
+        cb: (ExtractorLink)->Unit,
+        extraHeaders: Map<String, String> = emptyMap()
+    ) {
+        val playbackHeaders = linkedMapOf(
+            "User-Agent" to USER_AGENT,
+            "Referer" to "$base/",
+            "Origin" to base,
+            "Accept" to "*/*",
+            "Accept-Language" to "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Sec-CH-UA" to "\\"Chromium\\\";v=\\\"140\\\", \\"Not=A?Brand\\\";v=\\\"24\\\", \\"Google Chrome\\\";v=\\\"140\\\"",
+            "Sec-CH-UA-Mobile" to "?0",
+            "Sec-CH-UA-Platform" to "\\"Windows\\\"",
+            "Sec-Fetch-Dest" to "empty",
+            "Sec-Fetch-Mode" to "cors",
+            "Sec-Fetch-Site" to "cross-site"
+        )
+        playbackHeaders.putAll(extraHeaders.filterValues { it.isNotBlank() })
+
         cb(newExtractorLink("PARS SPOR 1", label, url.replace("\\/","/"), ExtractorLinkType.M3U8) {
             referer = "$base/"
             quality = Qualities.Unknown.value
-            headers = mapOf("User-Agent" to USER_AGENT, "Referer" to "$base/", "Origin" to base, "Accept" to "*/*")
+            headers = playbackHeaders
         })
     }
 
@@ -179,8 +200,18 @@ class PARSSPOR1 : MainAPI() {
         val a = runCatching { parseJson<AuthResponse>(r.text) }.getOrNull()
         val fresh = a?.url?.replace("\\/","/")?.trim().orEmpty()
         if (!fresh.startsWith("http")) return false
-        // TOKEN/final URL saklanmaz. Her play'de auth.php yeniden çağrılır.
-        emitHls(label, fresh, base, cb)
+
+        // Resolver Lab V31.5 kanıtı:
+        // CDN isteği standart 4 header ile 403, Chromium playback headerlarıyla 200.
+        // TOKEN auth.php cevabından taze alınır; final CDN URL/TOKEN cache edilmez.
+        val token = a?.token.orEmpty().trim()
+        val playbackExtra = linkedMapOf<String, String>()
+        if (token.isNotBlank()) {
+            playbackExtra["UserToken"] = token
+            playbackExtra["pl"] = token
+        }
+
+        emitHls(label, fresh, base, cb, playbackExtra)
         return true
     }
 
