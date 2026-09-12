@@ -1,10 +1,10 @@
 version = 1
 
 cloudstream {
+    iconUrl = "https://raw.githubusercontent.com/punistek/pars-plugins/main/assets/providers/SPOR2.png"
+    description = "🟢 PUU Maç Listesi + 7/24 TV · PARS"
     language = "tr"
-    description = "SPOR2 - Maç Listesi ve 7/24 TV"
-    authors = listOf("PARS")
-
-    status = 1
+    status = 3
     tvTypes = listOf("Live")
+    requiresResources = false
 }
