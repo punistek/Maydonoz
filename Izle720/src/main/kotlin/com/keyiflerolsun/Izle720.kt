@@ -30,7 +30,12 @@ class Izle720 : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
-        mainUrl to "Son Eklenen Filmler"
+        mainUrl to "Son Eklenen Filmler",
+        "$mainUrl/kategori/bilim-kurgu/" to "Bilim Kurgu",
+        "$mainUrl/kategori/yerli-filmler/" to "Yerli Filmler",
+        "$mainUrl/kategori/turkce-netflix-filmleri-izle/" to "Netflix Filmleri",
+        "$mainUrl/kategori/aksiyon/" to "Aksiyon",
+        "$mainUrl/kategori/macera-filmleri/" to "Macera"
     )
 
     private fun cleanTitle(raw: String): String {
@@ -62,9 +67,9 @@ class Izle720 : MainAPI() {
 
         val anchors = document.select(
             "div.slide-item a[href*=/filmler11/], " +
-            "div.item a[href*=/filmler11/], " +
-            "article a[href*=/filmler11/], " +
-            "a[href*=/filmler11/]"
+                "div.item a[href*=/filmler11/], " +
+                "article a[href*=/filmler11/], " +
+                "a[href*=/filmler11/]"
         )
 
         for (a in anchors) {
@@ -80,7 +85,7 @@ class Izle720 : MainAPI() {
                 img.attr("alt").trim()
                     .ifBlank { a.attr("title").trim() }
                     .ifBlank { a.selectFirst("h2,h3,.title")?.text()?.trim().orEmpty() }
-            )
+                )
 
             if (title.isBlank()) continue
 
@@ -97,14 +102,43 @@ class Izle720 : MainAPI() {
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val url = if (page <= 1) mainUrl else "$mainUrl/page/$page/"
 
-        Log.i("IZLE720", "MAIN_PAGE GET page=$page url=$url")
+        val baseUrl = request.data.trimEnd('/')
 
-        val response = app.get(url, headers = headers())
+        val url = if (page <= 1) {
+            "$baseUrl/"
+        } else {
+            "$baseUrl/page/$page/"
+        }
+
+        Log.i(
+            "IZLE720",
+            "MAIN_PAGE GET category=${request.name} page=$page url=$url"
+        )
+
+        val response = runCatching {
+            app.get(url, headers = headers())
+        }.getOrElse {
+            Log.e(
+                "IZLE720",
+                "MAIN_PAGE FAIL category=${request.name} page=$page " +
+                    "${it::class.simpleName}: ${it.message}"
+            )
+
+            return newHomePageResponse(
+                request.name,
+                emptyList(),
+                false
+            )
+        }
+
         val items = parseMovieCards(response.document)
 
-        Log.i("IZLE720", "MAIN_PAGE DONE page=$page items=${items.size}")
+        Log.i(
+            "IZLE720",
+            "MAIN_PAGE DONE category=${request.name} page=$page " +
+                "items=${items.size} url=$url"
+        )
 
         return newHomePageResponse(
             request.name,
