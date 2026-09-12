@@ -252,13 +252,13 @@ class Filmmodu : MainAPI() {
                 val file = sub.optString("file").replace("\\/", "/")
                 if (file.isBlank()) continue
                 val label = sub.optString("label").ifBlank { sub.optString("language").ifBlank { "Subtitle" } }
-                subtitleCallback(SubtitleFile(label, fixUrl(file, embed)))
+                subtitleCallback(SubtitleFile(label, java.net.URI(embed).resolve(file).toString()))
             }
         }
 
         val media = cfg.optString("video_location").replace("\\/", "/")
         if (media.isBlank()) return false
-        val finalUrl = fixUrl(media, embed)
+        val finalUrl = java.net.URI(embed).resolve(media).toString()
         callback(
             newExtractorLink(
                 source = "Filmmodu VidMixi",
