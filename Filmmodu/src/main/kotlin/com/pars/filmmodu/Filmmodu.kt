@@ -235,13 +235,31 @@ class Filmmodu : MainAPI() {
         JSONObject(String(cipher.doFinal(ct), Charsets.UTF_8))
     }.getOrNull()
 
+    private fun resolveUrlAgainst(base: String, value: String): String {
+        val cleanBase = base.trim()
+        val cleanValue = value.replace("\\/", "/").trim()
+        if (cleanValue.startsWith("http://") || cleanValue.startsWith("https://")) {
+            return cleanValue
+        }
+        return runCatching {
+            java.net.URI(cleanBase).resolve(cleanValue.replace(" ", "%20")).toString()
+        }.getOrElse {
+            val origin = Regex("""^(https?://[^/]+)""").find(cleanBase)?.groupValues?.getOrNull(1).orEmpty()
+            when {
+                cleanValue.startsWith("/") && origin.isNotBlank() -> origin + cleanValue
+                else -> cleanValue
+            }
+        }
+    }
+
     private suspend fun resolveBePlayer(
         embed: String,
         parent: String,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val text = runCatching { app.get(embed, referer = parent).text }.getOrNull() ?: return false
+        val cleanEmbed = embed.trim()
+        val text = runCatching { app.get(cleanEmbed, referer = parent.trim()).text }.getOrNull() ?: return false
         val (password, encrypted) = bePlayerArgs(text) ?: return false
         val cfg = decryptBePlayer(password, encrypted) ?: return false
 
@@ -249,16 +267,16 @@ class Filmmodu : MainAPI() {
         if (subtitles != null) {
             for (i in 0 until subtitles.length()) {
                 val sub = subtitles.optJSONObject(i) ?: continue
-                val file = sub.optString("file").replace("\\/", "/")
+                val file = sub.optString("file").replace("\\/", "/").trim()
                 if (file.isBlank()) continue
                 val label = sub.optString("label").ifBlank { sub.optString("language").ifBlank { "Subtitle" } }
-                subtitleCallback(SubtitleFile(label, java.net.URI(embed).resolve(file).toString()))
+                subtitleCallback(SubtitleFile(label, resolveUrlAgainst(cleanEmbed, file)))
             }
         }
 
-        val media = cfg.optString("video_location").replace("\\/", "/")
+        val media = cfg.optString("video_location").replace("\\/", "/").trim()
         if (media.isBlank()) return false
-        val finalUrl = java.net.URI(embed).resolve(media).toString()
+        val finalUrl = resolveUrlAgainst(cleanEmbed, media)
         callback(
             newExtractorLink(
                 source = "Filmmodu VidMixi",
@@ -266,7 +284,7 @@ class Filmmodu : MainAPI() {
                 url = finalUrl,
                 type = ExtractorLinkType.M3U8
             ) {
-                referer = embed
+                referer = cleanEmbed
                 quality = Qualities.Unknown.value
             }
         )
