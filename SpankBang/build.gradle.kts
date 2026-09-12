@@ -1,9 +1,9 @@
 version = 1
 
 cloudstream {
-    authors     = listOf("coxju", "keyiflerolsun")
+    authors     = listOf("PUU", "PARS")
     language    = "en"
-    description = "(VPN) SpankBang is the hottest free porn site in the world! Cum like never before and explore millions of fresh and free porn videos! Get lit on SpankBang!"
+    description = "(VPN) Eklenti VPN ile açılır. Sonra açılmıyor diye söğlenmeyin."
 
     /**
      * Status int as the following:
