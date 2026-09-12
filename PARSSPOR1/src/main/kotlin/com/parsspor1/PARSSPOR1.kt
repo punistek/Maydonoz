@@ -169,9 +169,9 @@ class PARSSPOR1 : MainAPI() {
             "Origin" to base,
             "Accept" to "*/*",
             "Accept-Language" to "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-            "Sec-CH-UA" to "\\"Chromium\\\";v=\\\"140\\\", \\"Not=A?Brand\\\";v=\\\"24\\\", \\"Google Chrome\\\";v=\\\"140\\\"",
+            "Sec-CH-UA" to "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
             "Sec-CH-UA-Mobile" to "?0",
-            "Sec-CH-UA-Platform" to "\\"Windows\\\"",
+            "Sec-CH-UA-Platform" to "\"Windows\"",
             "Sec-Fetch-Dest" to "empty",
             "Sec-Fetch-Mode" to "cors",
             "Sec-Fetch-Site" to "cross-site"
