@@ -1,7 +1,7 @@
 version = 1
 
 cloudstream {
-    authors = listOf("keyiflerolsun")
+    authors = listOf("PARS")
     language = "tr"
     description = "Sinemakolik film kaynagi - VidMixi resolver"
     status = 1
