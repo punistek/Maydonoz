@@ -25,20 +25,72 @@ class DiziSol : MainAPI() {
             "Chrome/153.0.0.0 Safari/537.36"
 
     override val mainPage = mainPageOf(
-        "tv" to "Diziler"
+        "$mainUrl/diziler" to "Diziler",
+        "$mainUrl/diziler?kategori=mustwatch" to "Mutlaka İzle",
+        "$mainUrl/diziler?kategori=binge" to "Binge İzle",
+        "$mainUrl/diziler?kategori=miniseries" to "Mini Diziler",
+        "$mainUrl/diziler?kategori=10765" to "Bilim Kurgu & Fantastik",
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val apiPage = page.coerceAtLeast(1)
-        val url = "$mainUrl/api/library/browse?type=tv&page=$apiPage"
-        val response = app.get(url, referer = "$mainUrl/diziler?sayfa=$apiPage")
+        val category = Regex("""[?&]kategori=([^&]+)""")
+            .find(request.data)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.trim()
+            .orEmpty()
+
+        val apiUrl = when (category) {
+            // Resolver Lab kaydında DiziSol'un "yüksek puan / çok oy" discover zinciri görüldü.
+            "mustwatch" ->
+                "$mainUrl/api/tmdb/discover/tv?language=tr-TR" +
+                    "&vote_average.gte=7.5&vote_count.gte=2000" +
+                    "&sort_by=vote_count.desc&page=$apiPage"
+
+            // DiziSol linkindeki 10765, TMDB Sci-Fi & Fantasy tür kimliğidir.
+            "10765" ->
+                "$mainUrl/api/tmdb/discover/tv?language=tr-TR" +
+                    "&with_genres=10765&page=$apiPage"
+
+            // Bu iki kategori DiziSol'un kendi kategori anahtarlarıdır.
+            // Parametreyi değiştirmeden library browse API'sine iletiyoruz.
+            "binge", "miniseries" ->
+                "$mainUrl/api/library/browse?type=tv&page=$apiPage&category=$category"
+
+            else ->
+                "$mainUrl/api/library/browse?type=tv&page=$apiPage"
+        }
+
+        val referer = buildString {
+            append("$mainUrl/diziler")
+            if (category.isNotBlank()) {
+                append("?kategori=")
+                append(category)
+                if (apiPage > 1) append("&sayfa=$apiPage")
+            } else if (apiPage > 1) {
+                append("?sayfa=$apiPage")
+            }
+        }
+
+        val response = app.get(apiUrl, referer = referer)
             .parsedSafe<BrowseResponse>()
 
-        val items = response?.results.orEmpty().mapNotNull { it.toSearchResponse() }
-        Log.d("DIZISOL", "MAIN page=$apiPage items=${items.size}")
+        val items = response?.results.orEmpty()
+            .mapNotNull { it.toSearchResponse() }
+            .distinctBy { it.url }
 
-        // DiziSol sayfası 191+ sayfalık katalog kullanıyor. API sonuç döndürdüğü sürece devam.
-        return newHomePageResponse(request.name, items, hasNext = items.isNotEmpty())
+        Log.d(
+            "DIZISOL",
+            "MAIN category=${category.ifBlank { "all" }} page=$apiPage " +
+                "items=${items.size} api=$apiUrl"
+        )
+
+        return newHomePageResponse(
+            request.name,
+            items,
+            hasNext = items.isNotEmpty()
+        )
     }
 
     private fun BrowseItem.toSearchResponse(): SearchResponse? {
