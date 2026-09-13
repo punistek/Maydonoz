@@ -270,7 +270,7 @@ class RoketDizi : MainAPI() {
         //    Gerçek sayfa JS ile player iframe'ini oluşturuyor. V46 Resolver Lab'da çalışan
         //    mantığın Android karşılığı: sayfayı normal WebView runtime'da aç, DOM'a hook
         //    kurmadan yalnız doğal network isteklerini gözle, pichive iframe görünürse onu
-        //    top-level aç ve ortasına gerçek Android touch gesture gönder.
+        //    top-level aç; runtime DOM'dan gerçek player/play yüzeyinin koordinatını bul ve o noktaya Android touch gesture gönder.
         val context = RoketRuntimeContext.context
         if (context == null) {
             Log.e("ROKET", "RUNTIME NO_CONTEXT")
