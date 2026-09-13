@@ -155,7 +155,7 @@ class RoketDizi : MainAPI() {
         return null
     }
 
-    private fun movieLoad(url: String, doc: Document, o: JSONObject): LoadResponse {
+    private suspend fun movieLoad(url: String, doc: Document, o: JSONObject): LoadResponse {
         val title = o.optString("name").ifBlank { og(doc, "og:title") ?: "Film" }
         val poster = o.optString("image").takeIf { it.isNotBlank() } ?: og(doc, "og:image")
         val plot = o.optString("description").takeIf { it.isNotBlank() }
@@ -173,7 +173,7 @@ class RoketDizi : MainAPI() {
         }
     }
 
-    private fun seriesLoad(url: String, doc: Document, o: JSONObject): LoadResponse {
+    private suspend fun seriesLoad(url: String, doc: Document, o: JSONObject): LoadResponse {
         val title = o.optString("name").ifBlank { og(doc, "og:title") ?: "Dizi" }
         val poster = o.optString("image").takeIf { it.isNotBlank() } ?: og(doc, "og:image")
         val plot = o.optString("description").takeIf { it.isNotBlank() }
@@ -183,16 +183,16 @@ class RoketDizi : MainAPI() {
         val episodes = mutableListOf<Episode>()
 
         jsonArray(o.opt("containsSeason")).forEach { rawSeason ->
-            val season = rawSeason as? JSONObject ?: return@forEach
-            val sn = season.optInt("seasonNumber", 0).takeIf { it > 0 }
-            jsonArray(season.opt("episode")).forEach { rawEp ->
+            val seasonObj = rawSeason as? JSONObject ?: return@forEach
+            val sn = seasonObj.optInt("seasonNumber", 0).takeIf { it > 0 }
+            jsonArray(seasonObj.opt("episode")).forEach { rawEp ->
                 val ep = rawEp as? JSONObject ?: return@forEach
                 val epUrl = ep.optString("url").takeIf { it.isNotBlank() } ?: return@forEach
                 val en = ep.optInt("episodeNumber", 0).takeIf { it > 0 }
                 episodes += newEpisode(epUrl) {
                     name = ep.optString("name").takeIf { it.isNotBlank() }
-                    season = sn
-                    episode = en
+                    this.season = sn
+                    this.episode = en
                     description = ep.optString("description").takeIf { it.isNotBlank() }
                 }
             }
