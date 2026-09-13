@@ -7,6 +7,7 @@ import com.lagradost.cloudstream3.plugins.Plugin
 @CloudstreamPlugin
 class RoketDiziPlugin : Plugin() {
     override fun load(context: Context) {
+        RoketRuntimeContext.context = context
         registerMainAPI(RoketDizi())
     }
 }

@@ -227,34 +227,94 @@ class RoketDizi : MainAPI() {
             fixUrlNull(raw)?.let { embeds += it }
         }
 
-        // Next/React kaynaklarında URL string olarak gömülmüş iframe/player adreslerini de topla.
         Regex("""https?:\\?/\\?/[^\"'<>\\s]+""", RegexOption.IGNORE_CASE)
             .findAll(response.text).forEach { m ->
                 val u = m.value.replace("\\/", "/").replace("&amp;", "&")
                 if (u.contains("iframe", true) || u.contains("pichive", true)) embeds += u
             }
 
-        Log.i("ROKET", "EMBEDS count=${embeds.size} hosts=${embeds.mapNotNull { runCatching { java.net.URI(it).host }.getOrNull() }.distinct()}")
+        Log.i(
+            "ROKET",
+            "EMBEDS count=${embeds.size} hosts=${
+                embeds.mapNotNull { runCatching { java.net.URI(it).host }.getOrNull() }.distinct()
+            }"
+        )
 
         var emitted = 0
+
+        // 1) Normal CloudStream extractor path first.
         for (embed in embeds) {
             runCatching {
-                // Önce Cloudflare oturumunu iframe hostunda kurmayı dene; ardından CloudStream extractor zincirine ver.
                 app.get(embed, referer = data, interceptor = cfInterceptor)
                 loadExtractor(embed, data, subtitleCallback) { link ->
                     emitted++
-                    Log.i("ROKET", "EMIT type=${link.type} quality=${link.quality} host=${runCatching { java.net.URI(link.url).host }.getOrNull()}")
+                    Log.i(
+                        "ROKET",
+                        "EMIT extractor type=${link.type} quality=${link.quality} host=${
+                            runCatching { java.net.URI(link.url).host }.getOrNull()
+                        }"
+                    )
                     callback(link)
                 }
             }.onFailure {
-                Log.e("ROKET", "EMBED FAIL host=${runCatching { java.net.URI(embed).host }.getOrNull()} ${it::class.simpleName}: ${it.message}")
+                Log.e(
+                    "ROKET",
+                    "EMBED FAIL host=${runCatching { java.net.URI(embed).host }.getOrNull()} ${it::class.simpleName}: ${it.message}"
+                )
             }
         }
 
-        if (emitted == 0) {
-            Log.w("ROKET", "NO_LINK runtime player may require browser/user-gesture path; no fake/static master emitted")
+        if (emitted > 0) return true
+
+        // 2) RoketDizi player HTML içinde hazır iframe vermiyor.
+        //    Gerçek sayfa JS ile player iframe'ini oluşturuyor. V46 Resolver Lab'da çalışan
+        //    mantığın Android karşılığı: sayfayı normal WebView runtime'da aç, DOM'a hook
+        //    kurmadan yalnız doğal network isteklerini gözle, pichive iframe görünürse onu
+        //    top-level aç ve ortasına gerçek Android touch gesture gönder.
+        val context = RoketRuntimeContext.context
+        if (context == null) {
+            Log.e("ROKET", "RUNTIME NO_CONTEXT")
+            return false
         }
-        return emitted > 0
+
+        Log.i("ROKET", "RUNTIME START clean_observer=true detail=$data")
+        val runtime = runCatching {
+            RoketWebRuntime.resolve(context, data)
+        }.onFailure {
+            Log.e("ROKET", "RUNTIME FAIL ${it::class.simpleName}: ${it.message}")
+        }.getOrNull()
+
+        if (runtime == null) {
+            Log.w("ROKET", "RUNTIME NO_MEDIA")
+            return false
+        }
+
+        Log.i(
+            "ROKET",
+            "RUNTIME MEDIA host=${runCatching { java.net.URI(runtime.mediaUrl).host }.getOrNull()} " +
+                "iframe=${runtime.iframeUrl} cookie=${runtime.cookie.isNotBlank()}"
+        )
+
+        callback(
+            newExtractorLink(
+                source = "RoketDizi - Pichive",
+                name = "RoketDizi HLS",
+                url = runtime.mediaUrl,
+                type = ExtractorLinkType.M3U8
+            ) {
+                referer = runtime.iframeUrl
+                headers = buildMap {
+                    put("Referer", runtime.iframeUrl)
+                    put("Accept", "*/*")
+                    if (runtime.userAgent.isNotBlank()) put("User-Agent", runtime.userAgent)
+                    if (runtime.cookie.isNotBlank()) put("Cookie", runtime.cookie)
+                }
+                quality = Qualities.Unknown.value
+            }
+        )
+
+        Log.i("ROKET", "EMIT runtime HLS")
+        return true
     }
 
     private fun jsonLdObjects(doc: Document): List<JSONObject> {
