@@ -103,7 +103,7 @@ class DiziMakinesi : MainAPI() {
         return null
     }
 
-    private fun movieLoad(url: String, doc: Document, o: JSONObject): LoadResponse {
+    private suspend fun movieLoad(url: String, doc: Document, o: JSONObject): LoadResponse {
         val title = o.optString("name").ifBlank { og(doc, "og:title") ?: "Film" }
         val poster = o.optString("image").takeIf { it.isNotBlank() } ?: og(doc, "og:image")
         val plot = o.optString("description").takeIf { it.isNotBlank() }
@@ -120,7 +120,7 @@ class DiziMakinesi : MainAPI() {
         }
     }
 
-    private fun seriesLoad(url: String, doc: Document, o: JSONObject): LoadResponse {
+    private suspend fun seriesLoad(url: String, doc: Document, o: JSONObject): LoadResponse {
         val title = o.optString("name").ifBlank { og(doc, "og:title") ?: "Dizi" }
         val poster = o.optString("image").takeIf { it.isNotBlank() } ?: og(doc, "og:image")
         val plot = o.optString("description").takeIf { it.isNotBlank() }
