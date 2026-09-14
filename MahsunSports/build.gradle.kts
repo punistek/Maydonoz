@@ -1,4 +1,4 @@
-version = 4
+version = 5
 cloudstream {
     iconUrl = "https://raw.githubusercontent.com/punistek/pars-plugins/main/assets/providers/MahsunSports.jpg"
     description = "🟢 TurkSpor kaynağından · PARS"

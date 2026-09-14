@@ -60,32 +60,38 @@ class MahsunSports(private val domains: DomainResolver, private val artwork: Cha
     }
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val channel = currentChannel(data)
-        val page = app.get(channel.player, referer = domains.currentUrl, headers = mapOf("User-Agent" to DomainResolver.UA), timeout = 15)
-        if (page.code != 200) throw ErrorLoadingException("Oynatıcı yanıt vermedi (${page.code}).")
-        val streams = SportsParser.streamUrls(page.text, page.url)
-        System.out.println("[MAHSUN] LOAD channel=${channel.title} id=${channel.id} player=${page.url}")
-        System.out.println("[MAHSUN] STREAM_CANDIDATES ${streams.joinToString()}")
-        if (streams.isEmpty()) throw ErrorLoadingException("Oynatıcı yapısı değişmiş; eklenti güncellemesi gerekiyor.")
-        val playerOrigin = URI(page.url).let { "${it.scheme}://${it.authority}/" }
-        val links=mutableListOf<ExtractorLink>()
-        var found = false
-        for ((index, stream) in streams.take(3).withIndex()) {
-            try {
-                val requestHeaders = mapOf(
+
+        // Mahsun's channels[] already gives a different event.html?id=... URL for each
+        // channel. The current site resolves the HLS at browser runtime. Trying to parse
+        // one literal filename (for example batutest.m3u8) from static HTML caused every
+        // channel to collapse onto the same stream. Preserve the selected channel URL and
+        // let Baba Burda's existing WebView resolver capture that channel's real request.
+        val playerUrl = channel.player
+        val siteRoot = domains.currentUrl
+        val siteOrigin = runCatching {
+            URI(siteRoot).let { "${it.scheme}://${it.authority}" }
+        }.getOrDefault(siteRoot.trimEnd('/'))
+
+        System.out.println("[MAHSUN_V3] WEBVIEW_HANDOFF channel=${channel.title} id=${channel.id} url=$playerUrl")
+
+        callback(
+            newExtractorLink(
+                source = name,
+                name = "${ChannelBranding.forChannel(channel).title} • Browser",
+                url = playerUrl,
+                type = ExtractorLinkType.VIDEO,
+            ) {
+                referer = "$siteOrigin/"
+                quality = Qualities.Unknown.value
+                headers = mapOf(
                     "User-Agent" to DomainResolver.UA,
-                    "Origin" to playerOrigin.trimEnd('/'),
-                    "Accept" to "*/*",
+                    "Referer" to "$siteOrigin/",
+                    "Origin" to siteOrigin,
+                    "X-PARS-WEBVIEW" to "1",
+                    "X-PARS-DETAIL-REFERER" to "$siteOrigin/",
                 )
-                val playlist = app.get(stream, referer = playerOrigin, headers = requestHeaders, timeout = 12)
-                val isHls = playlist.code == 200 && playlist.text.trimStart().startsWith("#EXTM3U")
-                System.out.println("[MAHSUN] HLS_CHECK channel=${channel.id} code=${playlist.code} ok=$isHls stream=$stream final=${playlist.url}")
-                if (!isHls) continue
-                links.addAll(turkspor.common.HlsQuality.links(name,"${ChannelBranding.forChannel(channel).title} • Kaynak ${index + 1}",playlist.url,playlist.text,playerOrigin,requestHeaders))
-                found = true
-            } catch (e: CancellationException) { throw e } catch (_: Exception) { }
-        }
-        if (!found) throw ErrorLoadingException("Bu kanalın yayını şu anda yanıt vermiyor; maç saatinde veya WARP ile tekrar deneyin.")
-        turkspor.common.HlsQuality.sorted(links).forEach(callback)
-        return found
+            }
+        )
+        return true
     }
 }
