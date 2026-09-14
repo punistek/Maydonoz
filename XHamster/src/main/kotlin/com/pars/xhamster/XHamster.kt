@@ -16,9 +16,9 @@ class XHamster : MainAPI() {
     override val supportedTypes = setOf(TvType.Movie)
 
     override val mainPage = mainPageOf(
-        "$mainUrl/4k" to "4K",
-        "$mainUrl/categories/18-year-old/4k" to "18 Year Old 4K",
-        "$mainUrl/categories/amateur/4k" to "Amateur 4K",
+        "$mainUrl/4k?formatFrozen=1" to "4K",
+        "$mainUrl/categories/18-year-old" to "18 Year Old",
+        "$mainUrl/categories/amateur" to "Amateur",
     )
 
     private val browserHeaders = mapOf(
@@ -32,7 +32,9 @@ class XHamster : MainAPI() {
         val html = app.get(url, headers = browserHeaders, referer = "$mainUrl/").text
         val initials = extractInitials(html)
         val items = parseVideoCards(initials)
-        return newHomePageResponse(request.name, items)
+        // CloudStream varsayılanında hasNext=false kalabildiği için sonsuz kaydırma
+        // açıkça etkinleştiriliyor. Sayfa boş döndüğünde yükleme durur.
+        return newHomePageResponse(request.name, items, hasNext = items.isNotEmpty())
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
@@ -161,7 +163,23 @@ class XHamster : MainAPI() {
     private fun parseVideoCards(initials: JSONObject?): List<SearchResponse> {
         if (initials == null) return emptyList()
         val found = linkedMapOf<String, SearchResponse>()
-        collectVideoObjects(initials).forEach { video ->
+
+        // XHamster kategori/4K sayfalarında gerçek liste burada tutuluyor:
+        // pagesCategoryComponent -> trendingVideoListProps -> videoThumbProps
+        val exact = initials
+            .optJSONObject("pagesCategoryComponent")
+            ?.optJSONObject("trendingVideoListProps")
+            ?.optJSONArray("videoThumbProps")
+
+        val source = mutableListOf<JSONObject>()
+        if (exact != null) {
+            for (i in 0 until exact.length()) exact.optJSONObject(i)?.let(source::add)
+        }
+
+        // Yapı değişirse eski recursive tarama yedek olarak kalsın.
+        if (source.isEmpty()) source += collectVideoObjects(initials)
+
+        source.forEach { video ->
             val title = video.optString("title").trim().takeIf { it.isNotBlank() }
                 ?: return@forEach
             val url = video.optString("pageURL").trim().takeIf {
