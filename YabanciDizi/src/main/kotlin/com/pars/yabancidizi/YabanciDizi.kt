@@ -2,8 +2,6 @@ package com.pars.yabancidizi
 
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
-import com.lagradost.nicehttp.Session
-import org.json.JSONObject
 import org.jsoup.nodes.Document
 import java.net.URLDecoder
 
@@ -216,101 +214,36 @@ class YabanciDizi : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        println("[YABANCIDIZI] LOAD_LINKS data=$data")
+        println("[YABANCIDIZI] WEBVIEW_HANDOFF data=$data")
 
-        // /ajax/service aynı tarayıcı oturumundaki cookie'leri bekliyor. V1'de
-        // detail GET ile AJAX POST ayrı Requests çağrılarıydı ve Android logunda POST 520 dönüyordu.
-        // Session aynı CookieJar'ı GET -> POST -> drive zincirinde korur.
-        val session = Session(app.baseClient)
-        val pageResponse = session.get(data, headers = commonHeaders, referer = "$mainUrl/")
-        val html = pageResponse.text
-        val doc = pageResponse.document
-        val eId = extractEId(doc, html)
-        if (eId.isNullOrBlank()) {
-            println("[YABANCIDIZI] E_ID_NOT_FOUND")
-            return false
-        }
-        println("[YABANCIDIZI] E_ID_FOUND len=${eId.length}")
-
-        val ajax = session.post(
-            "$mainUrl/ajax/service",
-            data = mapOf(
-                "e_id" to eId,
-                "v_lang" to "en",
-                "type" to "get_whatwehave"
-            ),
-            headers = commonHeaders + mapOf(
-                "Origin" to mainUrl,
-                "X-Requested-With" to "XMLHttpRequest",
-                "Content-Type" to "application/x-www-form-urlencoded; charset=UTF-8",
-                "Accept" to "*/*",
-                "Cache-Control" to "no-cache",
-                "Pragma" to "no-cache"
-            ),
-            referer = data
-        )
-
-        println("[YABANCIDIZI] AJAX_STATUS=${ajax.code}")
-        val json = runCatching { JSONObject(ajax.text) }.getOrNull()
-        val apiIframe = json?.optString("api_iframe")
-            ?.replace("\\/", "/")
-            ?.trim()
-            ?.takeIf { it.startsWith("http") }
-
-        if (apiIframe == null) {
-            println("[YABANCIDIZI] API_IFRAME_NOT_FOUND response=${ajax.text.take(300)}")
-            return false
-        }
-        println("[YABANCIDIZI] API_IFRAME=$apiIframe")
-
-        val drive = session.get(apiIframe, headers = commonHeaders, referer = data)
-        val ydf = drive.document.selectFirst("iframe[src*='popcornvakti.net/embed/']")?.attr("src")?.trim()
-            ?.takeIf { it.isNotBlank() }
-            ?: Regex("https://ydf\\.popcornvakti\\.net/embed/[A-Za-z0-9_-]+", RegexOption.IGNORE_CASE)
-                .find(drive.text)?.value
-
-        if (ydf == null) {
-            println("[YABANCIDIZI] YDF_IFRAME_NOT_FOUND")
-            return false
-        }
-        println("[YABANCIDIZI] YDF=$ydf")
-
-        val videoId = Regex("/embed/([^/?#]+)").find(ydf)?.groupValues?.getOrNull(1)
-        if (videoId.isNullOrBlank()) {
-            println("[YABANCIDIZI] VIDEO_ID_NOT_FOUND")
-            return false
-        }
-
-        val playerOrigin = "https://ydf.popcornvakti.net"
-        val finalUrl = "https://film.popcornvakti.net/embed/$videoId/q/1"
-        val mediaHeaders = commonHeaders + mapOf(
-            "Origin" to playerOrigin,
-            "Referer" to "$playerOrigin/",
-            "Accept" to "*/*"
-        )
-
-        val verify = runCatching {
-            app.get(finalUrl, headers = mediaHeaders, referer = "$playerOrigin/")
-        }.getOrNull()
-
-        if (verify == null || !verify.text.trimStart().startsWith("#EXTM3U")) {
-            println("[YABANCIDIZI] HLS_VERIFY_FAIL url=$finalUrl body=${verify?.text?.take(120)}")
-            return false
-        }
-
-        println("[YABANCIDIZI] HLS_OK url=$finalUrl bytes=${verify.text.length}")
+        /*
+         * Android NiceHttp /ajax/service isteği bu kaynakta Cloudflare 520
+         * döndürüyor. PC Resolver Lab ise aynı detail sayfasını gerçek Chromium
+         * contextinde açınca şu zinciri başarıyla görüyor:
+         * detail -> /ajax/service -> /api/drives -> ydf.popcornvakti.net
+         * -> film.popcornvakti.net/.../q/1 -> #EXTM3U.
+         *
+         * Baba Burda'nın mevcut universal resolver'ı X-PARS-WEBVIEW marker'ını
+         * zaten destekliyor. Bu yüzden extractor burada sahte/yarım HLS üretmez;
+         * gerçek detail URL'yi browser runtime'a devreder.
+         */
         callback(
             newExtractorLink(
-                source = "YabancıDizi Mac",
-                name = "YabancıDizi Mac",
-                url = finalUrl,
-                type = ExtractorLinkType.M3U8
+                source = name,
+                name = "$name Browser",
+                url = data,
+                type = ExtractorLinkType.VIDEO
             ) {
-                referer = "$playerOrigin/"
+                referer = data
                 quality = Qualities.Unknown.value
-                headers = mediaHeaders
+                headers = commonHeaders + mapOf(
+                    "Referer" to data,
+                    "X-PARS-WEBVIEW" to "1",
+                    "X-PARS-DETAIL-REFERER" to data
+                )
             }
         )
+
         return true
     }
 
