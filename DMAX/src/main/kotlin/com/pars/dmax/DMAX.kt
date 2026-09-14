@@ -45,7 +45,7 @@ class DMAX : MainAPI() {
             parseProgramPosters(Jsoup.parse(extractAjaxHtml(text), mainUrl))
         }
 
-        return newHomePageResponse(request.name, items)
+        return newHomePageResponse(request.name, items, hasNext = items.isNotEmpty())
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
@@ -278,7 +278,14 @@ class DMAX : MainAPI() {
 
     private fun parseProgramPosters(doc: Document): List<SearchResponse> {
         val out = linkedMapOf<String, SearchResponse>()
-        val roots = doc.select(".dyn-content .poster, section.grid .poster, .poster")
+
+        // Kritik: Sayfada kategori listesinden önce ortak carousel/poster blokları da var.
+        // Tüm `.poster` elemanlarını almak her kategoride aynı ilk içeriklerin görünmesine
+        // neden oluyordu. Gerçek kategori sonuçları yalnız `section.grid.dyn-content` içinde.
+        var roots = doc.select("section.grid.dyn-content > .poster, section.grid.dyn-content .poster")
+
+        // /ajax/more cevabı sadece poster fragmenti döndürebilir; o durumda güvenli fallback.
+        if (roots.isEmpty()) roots = doc.select(".poster")
 
         roots.forEach { poster ->
             val a = poster.selectFirst("a[href]") ?: return@forEach
