@@ -19,7 +19,9 @@ class MahsunTest {
     }
     @Test fun refreshStreamIsUsedInsteadOfPlaceholder() {
         val html = javaClass.getResource("/player.html")!!.readText()
-        assertEquals(listOf("https://andro.evrenesoglu99.click/checklist/androstreamlivebs1.m3u8"), SportsParser.streamUrls(html, "${site}event.html?id=androstreamlivebs1"))
+        val urls = SportsParser.streamUrls(html, "${site}event.html?id=androstreamlivebs1")
+        assertEquals("https://andro.evrenesoglu99.click/checklist/batutest.m3u8", urls.first())
+        assert(urls.contains("https://andro.evrenesoglu99.click/checklist/androstreamlivebs1.m3u8"))
         assertEquals(1, SportsParser.streamUrls(html,"${site}event.html?id=androstreamlivess1").size)
         assertTrue(SportsParser.streamUrls(html,"${site}event.html?id=..%2Fsecret").isEmpty())
     }

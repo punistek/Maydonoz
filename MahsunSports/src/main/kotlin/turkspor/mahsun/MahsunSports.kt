@@ -69,7 +69,11 @@ class MahsunSports(private val domains: DomainResolver, private val artwork: Cha
         var found = false
         for ((index, stream) in streams.take(3).withIndex()) {
             try {
-                val requestHeaders = mapOf("User-Agent" to DomainResolver.UA, "Origin" to playerOrigin.trimEnd('/'))
+                val requestHeaders = mapOf(
+                    "User-Agent" to DomainResolver.UA,
+                    "Origin" to playerOrigin.trimEnd('/'),
+                    "Accept" to "*/*",
+                )
                 val playlist = app.get(stream, referer = playerOrigin, headers = requestHeaders, timeout = 12)
                 if (playlist.code != 200 || !playlist.text.trimStart().startsWith("#EXTM3U")) continue
                 links.addAll(turkspor.common.HlsQuality.links(name,"${ChannelBranding.forChannel(channel).title} • Kaynak ${index + 1}",playlist.url,playlist.text,playerOrigin,requestHeaders))
