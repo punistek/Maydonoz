@@ -166,6 +166,34 @@ class ArdaSpor(private val domains: DomainResolver, private val artwork: Channel
             } catch (e: CancellationException) { throw e } catch (_: Exception) { }
         }
 
-        throw ErrorLoadingException("ArdaSpor gerçek yayın adresi bulunamadı. ARDASPOR logunu gönderin.")
+        // The /channel/watch page returns HTTP 200, but the real HLS is created only
+        // after its JavaScript/player runs. A plain app.get() cannot see that runtime
+        // network request. Hand the exact selected player frame to Baba Burda's existing
+        // browser resolver instead of guessing a stream filename/domain.
+        val runtimeFrame = frames.firstOrNull()
+        if (!runtimeFrame.isNullOrBlank()) {
+            System.out.println("[ARDASPOR_V3] WEBVIEW_HANDOFF channel=${channel.id} url=$runtimeFrame")
+            callback(
+                newExtractorLink(
+                    source = name,
+                    name = "${ChannelBranding.forChannel(channel).title} • Browser",
+                    url = runtimeFrame,
+                    type = ExtractorLinkType.VIDEO,
+                ) {
+                    referer = detail.url
+                    quality = Qualities.Unknown.value
+                    headers = mapOf(
+                        "User-Agent" to DomainResolver.UA,
+                        "Referer" to detail.url,
+                        "Origin" to siteOrigin,
+                        "X-PARS-WEBVIEW" to "1",
+                        "X-PARS-DETAIL-REFERER" to detail.url,
+                    )
+                }
+            )
+            return true
+        }
+
+        throw ErrorLoadingException("ArdaSpor oynatıcı iframe'i bulunamadı. ARDASPOR_V3 logunu gönderin.")
     }
 }
