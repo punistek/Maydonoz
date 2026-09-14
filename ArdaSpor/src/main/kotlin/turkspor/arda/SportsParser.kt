@@ -95,6 +95,18 @@ object SportsParser {
         return httpsUrl(base + URLEncoder.encode(id,"UTF-8"))
     }
 
+
+    /** Player detail pages now wrap the actual player in /channel/watch/... iframe. */
+    fun playerFrames(html: String, base: String): List<String> = runCatching {
+        Jsoup.parse(html, base).select("iframe[src]").mapNotNull { frame ->
+            val url = frame.absUrl("src").trim()
+            val uri = runCatching { URI(url) }.getOrNull() ?: return@mapNotNull null
+            if (uri.scheme != "https" || uri.host == null || uri.userInfo != null || uri.port !in listOf(-1,443)) return@mapNotNull null
+            if (!uri.path.orEmpty().contains("/channel/watch/")) return@mapNotNull null
+            url
+        }.distinct()
+    }.getOrDefault(emptyList())
+
     /**
      * New Arda pages expose the real HLS directly in page markup / inline JS.
      * This deliberately accepts only HTTPS .m3u8 URLs and resolves relative forms.

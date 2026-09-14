@@ -60,42 +60,112 @@ class ArdaSpor(private val domains: DomainResolver, private val artwork: Channel
     }
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val channel = currentChannel(data)
-        val page = app.get(channel.player, referer = domains.currentUrl, headers = mapOf("User-Agent" to DomainResolver.UA), timeout = 15)
-        if (page.code != 200) throw ErrorLoadingException("Oynatıcı yanıt vermedi (${page.code}).")
-        val playerOrigin = URI(page.url).let { "${it.scheme}://${it.authority}/" }
-        // Current Arda HLS requests require the site origin/referer, not the CDN origin.
+        val siteRoot = domains.currentUrl
+        val siteOrigin = runCatching {
+            URI(siteRoot).let { "${it.scheme}://${it.authority}" }
+        }.getOrDefault(siteRoot.trimEnd('/'))
+        val hlsReferer = "$siteOrigin/"
         val headers = mapOf(
             "User-Agent" to DomainResolver.UA,
-            "Origin" to playerOrigin.trimEnd('/'),
+            "Origin" to siteOrigin,
             "Accept" to "*/*",
         )
+
+        System.out.println("[ARDASPOR] LOAD channel=${channel.title} id=${channel.id} page=${channel.player}")
+
         suspend fun emit(stream: String?): Boolean {
-            if (stream == null) return false
-            val playlist = app.get(stream, referer = playerOrigin, headers = headers, timeout = 12)
-            if (playlist.code != 200 || !playlist.text.trimStart().startsWith("#EXTM3U")) return false
-            turkspor.common.HlsQuality.links(name,ChannelBranding.forChannel(channel).title,playlist.url,playlist.text,playerOrigin,headers).forEach(callback)
-            return true
+            if (stream.isNullOrBlank()) return false
+            System.out.println("[ARDASPOR] HLS_TRY $stream")
+            return try {
+                val playlist = app.get(stream, referer = hlsReferer, headers = headers, timeout = 12)
+                val isHls = playlist.code == 200 && playlist.text.trimStart().startsWith("#EXTM3U")
+                System.out.println("[ARDASPOR] HLS_CHECK code=${playlist.code} ok=$isHls final=${playlist.url}")
+                if (!isHls) return false
+                turkspor.common.HlsQuality.links(
+                    name,
+                    ChannelBranding.forChannel(channel).title,
+                    playlist.url,
+                    playlist.text,
+                    hlsReferer,
+                    headers,
+                ).forEach(callback)
+                true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                System.out.println("[ARDASPOR] HLS_FAIL ${e.javaClass.simpleName}: ${e.message}")
+                false
+            }
         }
 
-        // NEW SITE: direct data-m3u8 / inline HLS has priority.
+        // If the channel list itself ever carries a direct HLS, use it first.
         if (emit(channel.directStream)) return true
-        for (stream in SportsParser.directHlsUrls(page.text, page.url)) {
+
+        // Current site: /mac-izle/... contains an iframe /channel/watch/... .
+        val detail = app.get(
+            channel.player,
+            referer = hlsReferer,
+            headers = mapOf("User-Agent" to DomainResolver.UA),
+            timeout = 15,
+        )
+        if (detail.code != 200) throw ErrorLoadingException("Oynatıcı yanıt vermedi (${detail.code}).")
+
+        // Rare case: HLS is already present in the detail page.
+        for (stream in SportsParser.directHlsUrls(detail.text, detail.url)) {
             if (emit(stream)) return true
         }
 
-        // OLD SITE fallbacks are kept intact.
-        SportsParser.streamEndpoint(page.text,channel.id)?.let { endpoint ->
+        // Actual 2026-09-14 structure: recurse into /channel/watch/<slug> iframe.
+        val frames = SportsParser.playerFrames(detail.text, detail.url)
+        System.out.println("[ARDASPOR] PLAYER_FRAMES count=${frames.size} ${frames.joinToString()}")
+        for (frameUrl in frames) {
             try {
-                val response = app.get(endpoint,referer=playerOrigin,headers=headers,timeout=10)
+                val frame = app.get(
+                    frameUrl,
+                    referer = detail.url,
+                    headers = mapOf("User-Agent" to DomainResolver.UA),
+                    timeout = 12,
+                )
+                System.out.println("[ARDASPOR] FRAME code=${frame.code} url=${frame.url}")
+                if (frame.code != 200) continue
+                for (stream in SportsParser.directHlsUrls(frame.text, frame.url)) {
+                    if (emit(stream)) return true
+                }
+
+                // Keep old endpoint/cinema logic, but also allow it to live inside the iframe now.
+                SportsParser.streamEndpoint(frame.text, channel.id)?.let { endpoint ->
+                    try {
+                        val response = app.get(endpoint, referer = frame.url, headers = headers, timeout = 10)
+                        if (response.code == 200 && emit(SportsParser.streamResponse(response.text))) return true
+                    } catch (e: CancellationException) { throw e } catch (_: Exception) { }
+                }
+                SportsParser.cinemaRequest(frame.text, channel.id)?.let { request ->
+                    try {
+                        val response = app.post(request.url, referer = frame.url, headers = headers, json = request.body, timeout = 10)
+                        if (response.code == 200 && emit(SportsParser.streamResponse(response.text))) return true
+                    } catch (e: CancellationException) { throw e } catch (_: Exception) { }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                System.out.println("[ARDASPOR] FRAME_FAIL ${e.javaClass.simpleName}: ${e.message}")
+            }
+        }
+
+        // Legacy fallback on the outer page.
+        SportsParser.streamEndpoint(detail.text, channel.id)?.let { endpoint ->
+            try {
+                val response = app.get(endpoint, referer = detail.url, headers = headers, timeout = 10)
                 if (response.code == 200 && emit(SportsParser.streamResponse(response.text))) return true
             } catch (e: CancellationException) { throw e } catch (_: Exception) { }
         }
-        SportsParser.cinemaRequest(page.text,channel.id)?.let { request ->
+        SportsParser.cinemaRequest(detail.text, channel.id)?.let { request ->
             try {
-                val response = app.post(request.url,referer=playerOrigin,headers=headers,json=request.body,timeout=10)
+                val response = app.post(request.url, referer = detail.url, headers = headers, json = request.body, timeout = 10)
                 if (response.code == 200 && emit(SportsParser.streamResponse(response.text))) return true
             } catch (e: CancellationException) { throw e } catch (_: Exception) { }
         }
-        throw ErrorLoadingException("Bu kanalın yayın servisi yanıt vermiyor; maç saatinde veya WARP ile tekrar deneyin.")
+
+        throw ErrorLoadingException("ArdaSpor gerçek yayın adresi bulunamadı. ARDASPOR logunu gönderin.")
     }
 }
