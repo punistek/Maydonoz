@@ -182,7 +182,7 @@ class ArdaSpor(private val domains: DomainResolver, private val artwork: Channel
                 ) {
                     referer = detail.url
                     quality = Qualities.Unknown.value
-                    headers = mapOf(
+                    this.headers = mapOf(
                         "User-Agent" to DomainResolver.UA,
                         "Referer" to detail.url,
                         "Origin" to siteOrigin,
