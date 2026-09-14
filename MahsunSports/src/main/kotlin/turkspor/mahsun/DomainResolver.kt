@@ -15,7 +15,7 @@ class DomainResolver(private val preferences: SharedPreferences) {
         const val GATEWAY = "https://mahsunsports.com/"
         const val BOOTSTRAP = "https://mahsunsports80.xyz/"
         const val MANIFEST = "https://raw.githubusercontent.com/punistek/pars-plugins/main/domains.json"
-        const val UA = "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+        const val UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
     }
     private val mutex = Mutex()
     @Volatile private var cached: SiteSnapshot? = null

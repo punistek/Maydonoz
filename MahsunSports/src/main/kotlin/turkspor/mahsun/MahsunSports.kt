@@ -63,6 +63,8 @@ class MahsunSports(private val domains: DomainResolver, private val artwork: Cha
         val page = app.get(channel.player, referer = domains.currentUrl, headers = mapOf("User-Agent" to DomainResolver.UA), timeout = 15)
         if (page.code != 200) throw ErrorLoadingException("Oynatıcı yanıt vermedi (${page.code}).")
         val streams = SportsParser.streamUrls(page.text, page.url)
+        System.out.println("[MAHSUN] LOAD channel=${channel.title} id=${channel.id} player=${page.url}")
+        System.out.println("[MAHSUN] STREAM_CANDIDATES ${streams.joinToString()}")
         if (streams.isEmpty()) throw ErrorLoadingException("Oynatıcı yapısı değişmiş; eklenti güncellemesi gerekiyor.")
         val playerOrigin = URI(page.url).let { "${it.scheme}://${it.authority}/" }
         val links=mutableListOf<ExtractorLink>()
@@ -75,7 +77,9 @@ class MahsunSports(private val domains: DomainResolver, private val artwork: Cha
                     "Accept" to "*/*",
                 )
                 val playlist = app.get(stream, referer = playerOrigin, headers = requestHeaders, timeout = 12)
-                if (playlist.code != 200 || !playlist.text.trimStart().startsWith("#EXTM3U")) continue
+                val isHls = playlist.code == 200 && playlist.text.trimStart().startsWith("#EXTM3U")
+                System.out.println("[MAHSUN] HLS_CHECK channel=${channel.id} code=${playlist.code} ok=$isHls stream=$stream final=${playlist.url}")
+                if (!isHls) continue
                 links.addAll(turkspor.common.HlsQuality.links(name,"${ChannelBranding.forChannel(channel).title} • Kaynak ${index + 1}",playlist.url,playlist.text,playerOrigin,requestHeaders))
                 found = true
             } catch (e: CancellationException) { throw e } catch (_: Exception) { }

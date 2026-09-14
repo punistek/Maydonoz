@@ -61,15 +61,14 @@ object SportsParser {
         val normalized = html.replace("\\/", "/").replace("&amp;", "&")
         val out = linkedSetOf<String>()
 
-        // 1) Fully-qualified HLS URLs in inline JS/HTML.
+        // 1) A full HLS URL physically present in THIS event page is channel-specific and safe.
         Regex("""https://[^\s'\"<>]+?\.m3u8(?:\?[^\s'\"<>]*)?""", RegexOption.IGNORE_CASE)
             .findAll(normalized)
             .map { it.value }
             .mapNotNull(::httpsUrl)
             .forEach(out::add)
 
-        // 2) Current getStreamSource() style: baseurl + "batutest.m3u8" (or another alias).
-        val bases = mutableListOf<String>()
+        val bases = linkedSetOf<String>()
         Regex("""const\s+baseurls\s*=\s*(\[.*?\]);""", RegexOption.DOT_MATCHES_ALL)
             .find(normalized)?.groupValues?.get(1)?.let { arr ->
                 runCatching { mapper.readTree(arr).mapNotNull { httpsUrl(it.asText()) } }.getOrDefault(emptyList())
@@ -78,17 +77,25 @@ object SportsParser {
         Regex("""(?:const|let|var)\s+baseurl\s*=\s*['\"](https://[^'\"]+)['\"]""", RegexOption.IGNORE_CASE)
             .findAll(normalized).map { it.groupValues[1] }.mapNotNull(::httpsUrl).forEach(bases::add)
 
-        val literalNames = Regex("""['\"]([A-Za-z0-9._-]+\.m3u8(?:\?[^'\"]*)?)['\"]""", RegexOption.IGNORE_CASE)
-            .findAll(normalized).map { it.groupValues[1] }.distinct().toList()
-
-        for (base in bases.distinct()) {
-            for (name in literalNames) {
-                httpsUrl("${base.trimEnd('/')}/${name.trimStart('/')}")?.let(out::add)
-            }
+        // 2) If the JS explicitly maps THIS id to a filename, use only that nearby mapping.
+        val escapedId = Regex.escape(id)
+        val idMappedNames = linkedSetOf<String>()
+        listOf(
+            Regex("""['\"]$escapedId['\"]\s*[:=,].{0,240}?['\"]([A-Za-z0-9._-]+\.m3u8(?:\?[^'\"]*)?)['\"]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)),
+            Regex("""\b$escapedId\b.{0,240}?['\"]([A-Za-z0-9._-]+\.m3u8(?:\?[^'\"]*)?)['\"]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)),
+        ).forEach { rx -> rx.findAll(normalized).forEach { m -> idMappedNames.add(m.groupValues[1]) } }
+        for (base in bases) for (name in idMappedNames) {
+            httpsUrl("${base.trimEnd('/')}/${name.trimStart('/')}")?.let(out::add)
         }
 
-        // 3) Legacy fallback: base + channel id + .m3u8.
-        for (base in bases.distinct()) {
+        // 3) Proven current exception from the user's Network capture on 2026-09-14.
+        // IMPORTANT: batutest is ONLY for BEIN 1. It must never leak to every channel.
+        if (id.equals("androstreamlivebs1", ignoreCase = true)) {
+            for (base in bases) httpsUrl("${base.trimEnd('/')}/batutest.m3u8")?.let(out::add)
+        }
+
+        // 4) Normal channel-specific legacy path. This keeps every channel tied to its own id.
+        for (base in bases) {
             httpsUrl("${base.trimEnd('/')}/$id.m3u8")?.let(out::add)
         }
 
