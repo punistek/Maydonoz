@@ -196,7 +196,7 @@ class DMAX : MainAPI() {
         val page = app.get(data, headers = commonHeaders, referer = "$mainUrl/")
         val html = page.text
 
-        // Sayfa kaynağında player/info?referenceId=EHD_xxx açık şekilde bulunuyor.
+        // DMAX sayfasindaki gercek video kimligi.
         val referenceId = Regex(
             "player/info\\?referenceId=([A-Za-z0-9_-]+)",
             RegexOption.IGNORE_CASE,
@@ -205,52 +205,33 @@ class DMAX : MainAPI() {
                 .find(html)?.groupValues?.getOrNull(1)
             ?: return false
 
-        val infoUrl = "$mainUrl/player/info?referenceId=$referenceId"
-        val infoText = app.get(
-            infoUrl,
-            headers = commonHeaders + mapOf(
-                "Accept" to "application/json, text/plain, */*",
-                "X-Requested-With" to "XMLHttpRequest",
-            ),
-            referer = data,
-        ).text
+        // DMAX'in kendi media-player bundle.js dosyasi Video.js kaynagini tam olarak
+        // bu redirect servisiyle kuruyor. player/info -> flavors.hls kullanilmiyor;
+        // o alan geoblock1_smil uyarisini dondurebiliyor.
+        val redirectUrl =
+            "https://dygvideo.dygdigital.com/api/redirect" +
+                "?PublisherId=27" +
+                "&ReferenceId=$referenceId" +
+                "&SecretKey=NtvApiSecret2014*"
 
-        val json = runCatching { JSONObject(infoText) }.getOrNull() ?: return false
-        val videoData = json.optJSONObject("video")?.optJSONObject("data") ?: return false
-        val flavors = videoData.optJSONObject("flavors") ?: return false
+        callback(
+            newExtractorLink(
+                source = "DMAX",
+                name = "DMAX",
+                url = redirectUrl,
+                type = ExtractorLinkType.M3U8,
+            ) {
+                referer = data
+                quality = Qualities.Unknown.value
+                headers = mapOf(
+                    "Referer" to data,
+                    "Origin" to mainUrl,
+                    "User-Agent" to commonHeaders.getValue("User-Agent"),
+                )
+            }
+        )
 
-        val candidates = linkedSetOf<String>()
-        val hls = flavors.optString("hls").replace("\\/", "/").trim()
-        if (hls.startsWith("http")) candidates += hls
-
-        val keys = flavors.keys()
-        while (keys.hasNext()) {
-            val key = keys.next()
-            val obj = flavors.optJSONObject(key) ?: continue
-            val u = obj.optString("file_url_1").replace("\\/", "/").trim()
-            if (u.startsWith("http") && u.contains(".m3u8", ignoreCase = true)) candidates += u
-        }
-
-        candidates.forEach { url ->
-            callback(
-                newExtractorLink(
-                    source = "DMAX",
-                    name = "DMAX",
-                    url = url,
-                    type = ExtractorLinkType.M3U8,
-                ) {
-                    referer = data
-                    quality = Qualities.Unknown.value
-                    headers = mapOf(
-                        "Referer" to data,
-                        "Origin" to mainUrl,
-                        "User-Agent" to commonHeaders.getValue("User-Agent"),
-                    )
-                }
-            )
-        }
-
-        return candidates.isNotEmpty()
+        return true
     }
 
     private suspend fun postMoreDiscover(slug: String, page: Int, csrf: String, referer: String): String {
