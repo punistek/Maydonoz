@@ -1,4 +1,4 @@
-version = 1
+version = 3
 
 cloudstream {
     iconUrl = "https://www.ardaspor30.top/dimg/55557ardafav.png"
