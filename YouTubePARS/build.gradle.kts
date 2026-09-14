@@ -1,4 +1,4 @@
-version = 1
+version = 2
 
 cloudstream {
     description = "YouTube: trendler, müzik, oyun, podcast, canlı yayın, arama, kanal ve playlist · PARS"
@@ -10,5 +10,5 @@ cloudstream {
 }
 
 dependencies {
-    implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.2")
+    implementation("com.github.teamnewpipe:NewPipeExtractor:v0.25.2")
 }
