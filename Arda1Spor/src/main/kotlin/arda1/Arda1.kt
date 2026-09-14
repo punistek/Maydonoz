@@ -18,7 +18,6 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.ExtractorLinkType
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.newExtractorLink
-import org.jsoup.Jsoup
 import java.net.URI
 import java.util.Locale
 
@@ -26,8 +25,10 @@ private data class ArdaChannel(
     val slug: String,
     val title: String,
     val posterPath: String,
-    val streamToken: String,
-    val legacyPath: String,
+)
+
+private data class ProvenStream(
+    val url: String,
 )
 
 class Arda1(private val domains: DomainResolver) : MainAPI() {
@@ -39,21 +40,33 @@ class Arda1(private val domains: DomainResolver) : MainAPI() {
     override val hasDownloadSupport = false
     override val mainPage = mainPageOf("channels" to "Kanallar")
 
-    // 2026-09-14 Arda ana sayfasında doğrulanan TV kanal listesi.
-    // Site BTK/TLS engeline düşse bile liste ve poster kaybolmasın diye fallback olarak tutulur.
+    // Arda ana sayfasından doğrulanmış kanal kataloğu. Site BTK/TLS engelindeyken
+    // arayüzün tamamen boş kalmaması için yalnız metadata fallback olarak tutulur.
+    // Buradaki sluglardan HLS URL TÜRETİLMEZ.
     private val fallbackChannels = listOf(
-        ArdaChannel("bein-sports-1", "BEIN SPORTS 1", "assets/img/kanal/beinsports1.png", "bein1", "bein1"),
-        ArdaChannel("bein-sports-2", "BEIN SPORTS 2", "assets/img/kanal/beinsports2.png", "bein2", "bein2"),
-        ArdaChannel("bein-sports-3", "BEIN SPORTS 3", "assets/img/kanal/beinsports3.png", "bein3", "bein3"),
-        ArdaChannel("bein-sports-4", "BEIN SPORTS 4", "assets/img/kanal/beinsports4.png", "bein4", "bein4"),
-        ArdaChannel("bein-sports-5", "BEIN SPORTS 5", "assets/img/kanal/beinsports5.png", "bein5", "bein5"),
-        ArdaChannel("bein-sports-max-1", "BEIN SPORTS MAX 1", "assets/img/kanal/beinsportsmax1.png", "beinmax1", "beinmax1"),
-        ArdaChannel("bein-sports-max-2", "BEIN SPORTS MAX 2", "assets/img/kanal/beinsportsmax2.png", "beinmax2", "beinmax2"),
-        ArdaChannel("s-sport", "S SPORT", "assets/img/kanal/ssport1.png", "s-sport", "s-sport"),
-        ArdaChannel("s-sport-2", "S SPORT 2", "assets/img/kanal/ssport2.png", "s-sport2", "s-sport2"),
-        ArdaChannel("trt-spor", "TRT SPOR", "assets/img/kanal/trtspornew.png", "trt-spor", "trt-spor"),
-        ArdaChannel("trt-1", "TRT 1", "assets/img/kanal/trt1.png", "trt1", "trt1"),
-        ArdaChannel("a-spor", "A SPOR", "assets/img/kanal/aspornew.png", "aspor", "aspor"),
+        ArdaChannel("bein-sports-1", "BEIN SPORTS 1", "assets/img/kanal/beinsports1.png"),
+        ArdaChannel("bein-sports-2", "BEIN SPORTS 2", "assets/img/kanal/beinsports2.png"),
+        ArdaChannel("bein-sports-3", "BEIN SPORTS 3", "assets/img/kanal/beinsports3.png"),
+        ArdaChannel("bein-sports-4", "BEIN SPORTS 4", "assets/img/kanal/beinsports4.png"),
+        ArdaChannel("bein-sports-5", "BEIN SPORTS 5", "assets/img/kanal/beinsports5.png"),
+        ArdaChannel("bein-sports-max-1", "BEIN SPORTS MAX 1", "assets/img/kanal/beinsportsmax1.png"),
+        ArdaChannel("bein-sports-max-2", "BEIN SPORTS MAX 2", "assets/img/kanal/beinsportsmax2.png"),
+        ArdaChannel("s-sport", "S SPORT", "assets/img/kanal/ssport1.png"),
+        ArdaChannel("s-sport-2", "S SPORT 2", "assets/img/kanal/ssport2.png"),
+        ArdaChannel("trt-spor", "TRT SPOR", "assets/img/kanal/trtspornew.png"),
+        ArdaChannel("trt-1", "TRT 1", "assets/img/kanal/trt1.png"),
+        ArdaChannel("a-spor", "A SPOR", "assets/img/kanal/aspornew.png"),
+    )
+
+    // YALNIZCA network/curl ile kanıtlanmış yayın URL'leri.
+    // Kesinlikle slug -> m3u8 isim üretimi yoktur.
+    private val provenStreams = mapOf(
+        "bein-sports-1" to ProvenStream(
+            "https://ladyboy.taylandpattaya.cfd//hls/bein1.m3u8"
+        ),
+        "bein-sports-2" to ProvenStream(
+            "https://ladyboy.taylandpattaya.cfd//bein2/tracks-v1a1/mono.m3u8"
+        ),
     )
 
     private fun originOf(url: String): String = runCatching {
@@ -73,10 +86,15 @@ class Arda1(private val domains: DomainResolver) : MainAPI() {
         }
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        // Domain erişilebilirse güncel domaini öğren; engelliyse fallback URL ile devam et.
         domains.resolveOrFallback()?.let { mainUrl = it }
         return newHomePageResponse(
-            listOf(HomePageList("Kanallar", fallbackChannels.map { it.searchResponse() }, isHorizontalImages = true)),
+            listOf(
+                HomePageList(
+                    "Kanallar",
+                    fallbackChannels.map { it.searchResponse() },
+                    isHorizontalImages = true,
+                )
+            ),
             false,
         )
     }
@@ -90,18 +108,23 @@ class Arda1(private val domains: DomainResolver) : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val slug = runCatching { URI(url).path.substringAfter("/mac-izle/").trim('/') }.getOrDefault("")
+        val slug = runCatching {
+            URI(url).path.substringAfter("/mac-izle/").trim('/')
+        }.getOrDefault("")
+
         val channel = fallbackChannels.firstOrNull { it.slug == slug }
             ?: throw ErrorLoadingException("Arda1 kanalı bulunamadı: $slug")
+
         domains.resolveOrFallback()?.let { mainUrl = it }
         val currentDetail = detailUrl(channel)
+
         return newLiveStreamLoadResponse(channel.title, currentDetail, currentDetail) {
             posterUrl = posterUrl(channel)
             plot = "ArdaSpor canlı kanal"
         }
     }
 
-    private suspend fun verifiedHls(
+    private suspend fun verifyProvenHls(
         url: String,
         rootReferer: String,
         origin: String,
@@ -113,12 +136,28 @@ class Arda1(private val domains: DomainResolver) : MainAPI() {
             "Cache-Control" to "no-cache",
             "Pragma" to "no-cache",
         )
+
         return runCatching {
-            val response = app.get(url, referer = rootReferer, headers = headers, timeout = 10)
-            val ok = response.code in 200..299 && response.text.trimStart().startsWith("#EXTM3U")
-            System.out.println("[ARDA1_V2] HLS_PROBE code=${response.code} ok=$ok candidate=$url final=${response.url}")
+            val response = app.get(
+                url,
+                referer = rootReferer,
+                headers = headers,
+                timeout = 10,
+            )
+            val ok = response.code in 200..299 &&
+                response.text.trimStart().startsWith("#EXTM3U")
+
+            System.out.println(
+                "[ARDA1_V3] PROVEN_HLS_PROBE code=${response.code} ok=$ok url=$url final=${response.url}"
+            )
+
             if (ok) response.url else null
-        }.getOrNull()
+        }.getOrElse { error ->
+            System.out.println(
+                "[ARDA1_V3] PROVEN_HLS_FAIL url=$url ${error.javaClass.simpleName}:${error.message.orEmpty()}"
+            )
+            null
+        }
     }
 
     override suspend fun loadLinks(
@@ -129,13 +168,16 @@ class Arda1(private val domains: DomainResolver) : MainAPI() {
     ): Boolean {
         domains.resolveOrFallback()?.let { mainUrl = it }
 
-        val slug = runCatching { URI(data).path.substringAfter("/mac-izle/").trim('/') }.getOrDefault("")
+        val slug = runCatching {
+            URI(data).path.substringAfter("/mac-izle/").trim('/')
+        }.getOrDefault("")
+
         val channel = fallbackChannels.firstOrNull { it.slug == slug }
             ?: throw ErrorLoadingException("Arda1 kanal eşlemesi yok: $slug")
 
         val origin = originOf(mainUrl)
         val rootReferer = "$origin/"
-        val headers = mapOf(
+        val commonHeaders = mapOf(
             "User-Agent" to DomainResolver.UA,
             "Origin" to origin,
             "Accept" to "*/*",
@@ -143,43 +185,43 @@ class Arda1(private val domains: DomainResolver) : MainAPI() {
             "Pragma" to "no-cache",
         )
 
-        System.out.println("[ARDA1_V2] LOAD title=${channel.title} slug=$slug token=${channel.streamToken} domain=$mainUrl")
+        System.out.println(
+            "[ARDA1_V3] LOAD title=${channel.title} slug=$slug domain=$mainUrl"
+        )
 
-        // 1) Güncel 2026-09-14 BeIN1 Network zincirinde kanıtlanan CDN ailesi.
-        // Kanal tokenı eski Arda kaynak/test yapısından gelir; aday URL ancak #EXTM3U doğrulanırsa kabul edilir.
-        val candidates = linkedSetOf<String>()
-        candidates += "https://ladyboy.taylandpattaya.cfd//hls/${channel.streamToken}.m3u8"
-
-        // 2) Eski çalışan Arda parser/test yapısında görülen ikinci HLS biçimi.
-        // Stale ise doğrulama reddeder; player'a asla kör URL gönderilmez.
-        candidates += "https://corestream.siteyaptim.live//${channel.legacyPath}/tracks-v1a1/mono.m3u8"
-        candidates += "https://corestream.siteyaptim.live//hls/${channel.streamToken}.m3u8"
-
-        for (candidate in candidates) {
-            val finalUrl = verifiedHls(candidate, rootReferer, origin) ?: continue
-            callback(
-                newExtractorLink(
-                    source = name,
-                    name = channel.title,
-                    url = finalUrl,
-                    type = ExtractorLinkType.M3U8,
-                ) {
-                    referer = rootReferer
-                    quality = Qualities.Unknown.value
-                    this.headers = headers
-                }
-            )
-            System.out.println("[ARDA1_V2] HLS_OK title=${channel.title} url=$finalUrl")
-            return true
+        // 1) Sadece kanıtlanmış direct HLS varsa kullan.
+        // V2'deki /hls/${'$'}token.m3u8 ve corestream tahminleri TAMAMEN kaldırıldı.
+        val proven = provenStreams[slug]
+        if (proven != null) {
+            val finalUrl = verifyProvenHls(proven.url, rootReferer, origin)
+            if (finalUrl != null) {
+                callback(
+                    newExtractorLink(
+                        source = name,
+                        name = channel.title,
+                        url = finalUrl,
+                        type = ExtractorLinkType.M3U8,
+                    ) {
+                        referer = rootReferer
+                        quality = Qualities.Unknown.value
+                        this.headers = commonHeaders
+                    }
+                )
+                System.out.println(
+                    "[ARDA1_V3] PROVEN_HLS_OK title=${channel.title} url=$finalUrl"
+                )
+                return true
+            }
         }
 
-        // 3) Direct CDN bulunamazsa detay sayfasını native Baba Burda resolver'a bırak.
-        // Bu yol gerçek runtime isteğini yakalayabilir; kanal URL'si hardcode HLS'e zorlanmaz.
-        val currentDetail = "${mainUrl.trimEnd('/')}/mac-izle/${channel.slug}"
+        // 2) Kanıtlanmış direct HLS yoksa URL uydurma.
+        // Gerçek site zincirini Baba Burda resolver'a ver:
+        // /mac-izle/<slug> -> site iframe/player -> runtime network -> gerçek medya.
+        val currentDetail = detailUrl(channel)
         callback(
             newExtractorLink(
                 source = name,
-                name = "${channel.title} • Browser",
+                name = "${channel.title} • Runtime",
                 url = currentDetail,
                 type = ExtractorLinkType.VIDEO,
             ) {
@@ -191,10 +233,14 @@ class Arda1(private val domains: DomainResolver) : MainAPI() {
                     "Origin" to origin,
                     "X-PARS-WEBVIEW" to "1",
                     "X-PARS-DETAIL-REFERER" to rootReferer,
+                    "X-PARS-ARDA-SLUG" to slug,
                 )
             }
         )
-        System.out.println("[ARDA1_V2] WEBVIEW_FALLBACK title=${channel.title} url=$currentDetail")
+
+        System.out.println(
+            "[ARDA1_V3] RUNTIME_HANDOFF title=${channel.title} slug=$slug url=$currentDetail"
+        )
         return true
     }
 }
