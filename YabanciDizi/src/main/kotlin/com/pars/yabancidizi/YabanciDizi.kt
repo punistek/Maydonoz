@@ -2,6 +2,7 @@ package com.pars.yabancidizi
 
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
+import com.lagradost.nicehttp.Session
 import org.json.JSONObject
 import org.jsoup.nodes.Document
 import java.net.URLDecoder
@@ -34,24 +35,26 @@ class YabanciDizi : MainAPI() {
     }
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        if (request.data.endsWith("/dizi-izle-hd") && page > 1) {
-            return newHomePageResponse(request.name, emptyList<SearchResponse>(), hasNext = false)
-        }
-
         val url = pageUrl(request.data, page)
         val doc = app.get(url, headers = commonHeaders, referer = "$mainUrl/").document
+
+        if (request.data.endsWith("/dizi-izle-hd")) {
+            // Site bütün dizi arşivini tek HTML'de veriyor. Uygulamaya 4-5 bin kartı
+            // tek seferde göndermek yerine sanal sayfalama yapıyoruz.
+            val pageSize = 60
+            val roots = doc.select("#page-series_list ul.new-tvseries li.segment-poster-sm")
+            val start = ((page.coerceAtLeast(1) - 1) * pageSize).coerceAtMost(roots.size)
+            val end = (start + pageSize).coerceAtMost(roots.size)
+            val items = parseSeriesArchive(roots.subList(start, end))
+            return newHomePageResponse(request.name, items, hasNext = end < roots.size)
+        }
+
         val items = when {
             request.data.endsWith("/kesfet") -> parseDiscover(doc)
-            request.data.endsWith("/dizi-izle-hd") -> parseSeriesArchive(doc)
             request.data.endsWith("/film-izle-hd") -> parseMovies(doc)
             else -> emptyList()
         }
-
-        val hasNext = when {
-            request.data.endsWith("/dizi-izle-hd") -> false
-            else -> items.isNotEmpty()
-        }
-        return newHomePageResponse(request.name, items, hasNext = hasNext)
+        return newHomePageResponse(request.name, items, hasNext = items.isNotEmpty())
     }
 
     private fun parseDiscover(doc: Document): List<SearchResponse> {
@@ -59,7 +62,7 @@ class YabanciDizi : MainAPI() {
         doc.select("#discover-response ul.filter-results > li .poster-with-subject").forEach { root ->
             val a = root.selectFirst("a[href^='film/'], a[href^='dizi/']") ?: return@forEach
             val href = a.attr("href").trim()
-            val url = fixUrl(href)
+            val url = absoluteUrl(href)
             val isMovie = href.startsWith("film/")
             val title = root.selectFirst(".subject-title h2, h2.truncate")?.text()?.trim()
                 ?.takeIf { it.isNotBlank() }
@@ -77,11 +80,11 @@ class YabanciDizi : MainAPI() {
         return out.values.toList()
     }
 
-    private fun parseSeriesArchive(doc: Document): List<SearchResponse> {
+    private fun parseSeriesArchive(roots: List<org.jsoup.nodes.Element>): List<SearchResponse> {
         val out = linkedMapOf<String, SearchResponse>()
-        doc.select("#page-series_list ul.new-tvseries li.segment-poster-sm").forEach { root ->
+        roots.forEach { root ->
             val a = root.selectFirst(".poster a[href^='dizi/']") ?: return@forEach
-            val url = fixUrl(a.attr("href"))
+            val url = absoluteUrl(a.attr("href"))
             val title = root.selectFirst(".poster-subject h2")?.text()?.trim()
                 ?.takeIf { it.isNotBlank() }
                 ?: a.attr("title").removeSuffix(" izle").trim().takeIf { it.isNotBlank() }
@@ -98,7 +101,7 @@ class YabanciDizi : MainAPI() {
         val out = linkedMapOf<String, SearchResponse>()
         doc.select("#page-movies_list li.mofy-moviesli, li.mofy-moviesli").forEach { root ->
             val a = root.selectFirst(".mofy-movbox-image a[href^='film/'], a[href^='film/']") ?: return@forEach
-            val url = fixUrl(a.attr("href"))
+            val url = absoluteUrl(a.attr("href"))
             val title = root.selectFirst(".mofy-movbox-text a[href^='film/']")?.text()?.trim()
                 ?.takeIf { it.isNotBlank() }
                 ?: a.attr("title").removeSuffix(" izle").trim().takeIf { it.isNotBlank() }
@@ -123,7 +126,7 @@ class YabanciDizi : MainAPI() {
                 ?: doc.selectFirst("h1")?.text()
                 ?: "Film"
         )
-        val poster = og(doc, "og:image") ?: doc.selectFirst(".poster img, .series-cover img, .movie-cover img")?.let(::imageUrl)
+        val poster = og(doc, "og:image")?.let(::absoluteUrl) ?: doc.selectFirst(".poster img, .series-cover img, .movie-cover img")?.let(::imageUrl)
         val plot = metaDescription(doc) ?: doc.selectFirst(".overview, .description, .excerpt")?.text()?.trim()
         val year = Regex("(?:19|20)\\d{2}").find(doc.text())?.value?.toIntOrNull()
 
@@ -140,14 +143,14 @@ class YabanciDizi : MainAPI() {
                 ?: doc.selectFirst("h1")?.text()
                 ?: "Dizi"
         )
-        val poster = og(doc, "og:image") ?: doc.selectFirst(".poster img, .series-cover img")?.let(::imageUrl)
+        val poster = og(doc, "og:image")?.let(::absoluteUrl) ?: doc.selectFirst(".poster img, .series-cover img")?.let(::imageUrl)
         val plot = metaDescription(doc) ?: doc.selectFirst(".overview, .description, .excerpt")?.text()?.trim()
 
         val episodeMap = linkedMapOf<String, Episode>()
         val episodeRegex = Regex("/sezon-(\\d+)/bolum-(\\d+)(?:$|[/?#])", RegexOption.IGNORE_CASE)
 
         doc.select("a[href*='/sezon-'][href*='/bolum-']").forEach { a ->
-            val epUrl = fixUrl(a.attr("href"))
+            val epUrl = absoluteUrl(a.attr("href"))
             val m = episodeRegex.find(epUrl) ?: return@forEach
             val seasonNo = m.groupValues[1].toIntOrNull()
             val episodeNo = m.groupValues[2].toIntOrNull()
@@ -168,9 +171,21 @@ class YabanciDizi : MainAPI() {
         if (episodeMap.isEmpty()) {
             val firstEpisode = "$url/sezon-1/bolum-1"
             runCatching {
-                val epDoc = app.get(firstEpisode, headers = commonHeaders, referer = url).document
+                val epResponse = app.get(firstEpisode, headers = commonHeaders, referer = url)
+                val epDoc = epResponse.document
+
+                // İlk bölüm sayfası gerçekten oynatılabilir bir bölümse, sayfada bölüm
+                // navigasyonu olmasa bile bölümü listeye ekle.
+                if (!extractEId(epDoc, epResponse.text).isNullOrBlank()) {
+                    episodeMap[firstEpisode] = newEpisode(firstEpisode) {
+                        name = "1. Bölüm"
+                        season = 1
+                        episode = 1
+                    }
+                }
+
                 epDoc.select("a[href*='/sezon-'][href*='/bolum-']").forEach { a ->
-                    val epUrl = fixUrl(a.attr("href"))
+                    val epUrl = absoluteUrl(a.attr("href"))
                     val m = episodeRegex.find(epUrl) ?: return@forEach
                     val seasonNo = m.groupValues[1].toIntOrNull()
                     val episodeNo = m.groupValues[2].toIntOrNull()
@@ -203,7 +218,11 @@ class YabanciDizi : MainAPI() {
     ): Boolean {
         println("[YABANCIDIZI] LOAD_LINKS data=$data")
 
-        val pageResponse = app.get(data, headers = commonHeaders, referer = "$mainUrl/")
+        // /ajax/service aynı tarayıcı oturumundaki cookie'leri bekliyor. V1'de
+        // detail GET ile AJAX POST ayrı Requests çağrılarıydı ve Android logunda POST 520 dönüyordu.
+        // Session aynı CookieJar'ı GET -> POST -> drive zincirinde korur.
+        val session = Session(app.baseClient)
+        val pageResponse = session.get(data, headers = commonHeaders, referer = "$mainUrl/")
         val html = pageResponse.text
         val doc = pageResponse.document
         val eId = extractEId(doc, html)
@@ -213,7 +232,7 @@ class YabanciDizi : MainAPI() {
         }
         println("[YABANCIDIZI] E_ID_FOUND len=${eId.length}")
 
-        val ajax = app.post(
+        val ajax = session.post(
             "$mainUrl/ajax/service",
             data = mapOf(
                 "e_id" to eId,
@@ -223,11 +242,15 @@ class YabanciDizi : MainAPI() {
             headers = commonHeaders + mapOf(
                 "Origin" to mainUrl,
                 "X-Requested-With" to "XMLHttpRequest",
-                "Accept" to "application/json, text/javascript, */*; q=0.01"
+                "Content-Type" to "application/x-www-form-urlencoded; charset=UTF-8",
+                "Accept" to "*/*",
+                "Cache-Control" to "no-cache",
+                "Pragma" to "no-cache"
             ),
             referer = data
         )
 
+        println("[YABANCIDIZI] AJAX_STATUS=${ajax.code}")
         val json = runCatching { JSONObject(ajax.text) }.getOrNull()
         val apiIframe = json?.optString("api_iframe")
             ?.replace("\\/", "/")
@@ -240,7 +263,7 @@ class YabanciDizi : MainAPI() {
         }
         println("[YABANCIDIZI] API_IFRAME=$apiIframe")
 
-        val drive = app.get(apiIframe, headers = commonHeaders, referer = data)
+        val drive = session.get(apiIframe, headers = commonHeaders, referer = data)
         val ydf = drive.document.selectFirst("iframe[src*='popcornvakti.net/embed/']")?.attr("src")?.trim()
             ?.takeIf { it.isNotBlank() }
             ?: Regex("https://ydf\\.popcornvakti\\.net/embed/[A-Za-z0-9_-]+", RegexOption.IGNORE_CASE)
@@ -321,7 +344,17 @@ class YabanciDizi : MainAPI() {
     private fun imageUrl(img: org.jsoup.nodes.Element): String? {
         val raw = img.attr("data-src").trim().ifBlank { img.attr("src").trim() }
         if (raw.isBlank() || raw.startsWith("data:")) return null
-        return fixUrl(raw)
+        return absoluteUrl(raw)
+    }
+
+    private fun absoluteUrl(raw: String): String {
+        val value = raw.trim().replace("&amp;", "&")
+        return when {
+            value.startsWith("https://", true) || value.startsWith("http://", true) -> value
+            value.startsWith("//") -> "https:$value"
+            value.startsWith("/") -> "$mainUrl$value"
+            else -> "$mainUrl/${value.trimStart('/')}"
+        }
     }
 
     private fun og(doc: Document, property: String): String? =
