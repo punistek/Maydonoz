@@ -17,8 +17,8 @@ class XHamster : MainAPI() {
 
     override val mainPage = mainPageOf(
         "$mainUrl/4k" to "4K",
-        "$mainUrl/categories/18-year-old" to "18 Year Old",
-        "$mainUrl/categories/amateur" to "Amateur",
+        "$mainUrl/categories/18-year-old/4k" to "18 Year Old 4K",
+        "$mainUrl/categories/amateur/4k" to "Amateur 4K",
     )
 
     private val browserHeaders = mapOf(
@@ -142,7 +142,20 @@ class XHamster : MainAPI() {
 
     private fun pageUrl(base: String, page: Int): String {
         if (page <= 1) return base
-        return base + if (base.contains("?")) "&page=$page" else "?page=$page"
+
+        // XHamster sayfalama query-string ile değil path segmenti ile çalışıyor:
+        // /4k/2
+        // /categories/18-year-old/4k/2
+        // /categories/amateur/4k/2
+        val fragmentIndex = base.indexOf('#')
+        val withoutFragment = if (fragmentIndex >= 0) base.substring(0, fragmentIndex) else base
+        val fragment = if (fragmentIndex >= 0) base.substring(fragmentIndex) else ""
+
+        val queryIndex = withoutFragment.indexOf('?')
+        val path = if (queryIndex >= 0) withoutFragment.substring(0, queryIndex) else withoutFragment
+        val query = if (queryIndex >= 0) withoutFragment.substring(queryIndex) else ""
+
+        return path.trimEnd('/') + "/$page" + query + fragment
     }
 
     private fun parseVideoCards(initials: JSONObject?): List<SearchResponse> {
