@@ -63,7 +63,12 @@ class ArdaSpor(private val domains: DomainResolver, private val artwork: Channel
         val page = app.get(channel.player, referer = domains.currentUrl, headers = mapOf("User-Agent" to DomainResolver.UA), timeout = 15)
         if (page.code != 200) throw ErrorLoadingException("Oynatıcı yanıt vermedi (${page.code}).")
         val playerOrigin = URI(page.url).let { "${it.scheme}://${it.authority}/" }
-        val headers = mapOf("User-Agent" to DomainResolver.UA, "Origin" to playerOrigin.trimEnd('/'))
+        // Current Arda HLS requests require the site origin/referer, not the CDN origin.
+        val headers = mapOf(
+            "User-Agent" to DomainResolver.UA,
+            "Origin" to playerOrigin.trimEnd('/'),
+            "Accept" to "*/*",
+        )
         suspend fun emit(stream: String?): Boolean {
             if (stream == null) return false
             val playlist = app.get(stream, referer = playerOrigin, headers = headers, timeout = 12)
@@ -71,6 +76,14 @@ class ArdaSpor(private val domains: DomainResolver, private val artwork: Channel
             turkspor.common.HlsQuality.links(name,ChannelBranding.forChannel(channel).title,playlist.url,playlist.text,playerOrigin,headers).forEach(callback)
             return true
         }
+
+        // NEW SITE: direct data-m3u8 / inline HLS has priority.
+        if (emit(channel.directStream)) return true
+        for (stream in SportsParser.directHlsUrls(page.text, page.url)) {
+            if (emit(stream)) return true
+        }
+
+        // OLD SITE fallbacks are kept intact.
         SportsParser.streamEndpoint(page.text,channel.id)?.let { endpoint ->
             try {
                 val response = app.get(endpoint,referer=playerOrigin,headers=headers,timeout=10)

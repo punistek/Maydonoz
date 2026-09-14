@@ -39,4 +39,14 @@ class ArdaTest {
         assertEquals("https://cdn.example/live.m3u8",SportsParser.streamResponse("""{"deismackanal":"https://cdn.example/live.m3u8","ad":"https://ads.example/ad.m3u8"}"""))
         assertNull(SportsParser.streamResponse("""{"URL":"javascript:alert(1)"}"""))
     }
+
+    @Test fun currentArdaMacIzleAndDirectHls() {
+        val base = "https://www.ardaspor30.top/"
+        val html = """<title>ArdaSpor TV</title><a href="/mac-izle/bein-sports-1" title="BEIN SPORTS 1"><img alt="BEIN SPORTS 1"></a>"""
+        val row = SportsParser.channels(html, base).single()
+        assertEquals("bein-sports-1", row.id)
+        assertEquals("https://www.ardaspor30.top/mac-izle/bein-sports-1", row.player)
+        val player = """<script>const src='https://ladyboy.taylandpattaya.cfd//hls/bein1.m3u8';</script>"""
+        assertEquals(listOf("https://ladyboy.taylandpattaya.cfd//hls/bein1.m3u8"), SportsParser.directHlsUrls(player, row.player))
+    }
 }
