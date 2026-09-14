@@ -83,7 +83,7 @@ class MahsunSports(private val domains: DomainResolver, private val artwork: Cha
             ) {
                 referer = "$siteOrigin/"
                 quality = Qualities.Unknown.value
-                headers = mapOf(
+                this.headers = mapOf(
                     "User-Agent" to DomainResolver.UA,
                     "Referer" to "$siteOrigin/",
                     "Origin" to siteOrigin,
