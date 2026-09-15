@@ -108,8 +108,11 @@ class Sinefy : MainAPI() {
         return when {
             Regex("/page/\\d+/?$").containsMatchIn(base) -> base.replace(Regex("/page/\\d+/?$"), "/page/$page")
             Regex("/dizi-izle/[^/]+/\\d+/?$").containsMatchIn(base) -> base.replace(Regex("/\\d+/?$"), "/$page")
-            Regex("/gozat/.+/\\d+/?$").containsMatchIn(base) -> base.replace(Regex("/\\d+/?$"), "/$page")
-            base.contains("/gozat/") -> "${base.trimEnd('/')}/$page"
+            base.contains("/gozat/") -> {
+                val cleanBase = base.replace(Regex("([?&])page=\\d+"), "").trimEnd('?', '&')
+                val separator = if (cleanBase.contains("?")) "&" else "?"
+                "$cleanBase${separator}page=$page"
+            }
             else -> base
         }
     }
