@@ -1,13 +1,10 @@
 package com.keyiflerolsun
 
 import android.util.Log
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import java.net.URI
 
 class Sinefy : MainAPI() {
     override var mainUrl = "https://sinefy3.com"
@@ -33,7 +30,7 @@ class Sinefy : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         // Kullanıcının verdiği gerçek sayfalar baz alınır. Bilinmeyen pagination endpoint'i üretilmez.
-        if (page > 1) return newHomePageResponse(request.name, emptyList(), hasNext = false)
+        if (page > 1) return newHomePageResponse(request.name, emptyList())
         val doc = app.get(request.data, headers = pageHeaders, referer = "$mainUrl/").document
         val items = parseCards(doc)
         Log.d("PARS_SINEFY", "HOME name=${request.name} items=${items.size} url=${request.data}")
@@ -154,100 +151,34 @@ class Sinefy : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val watch = app.get(data, headers = pageHeaders, referer = "$mainUrl/")
-        val watchDoc = watch.document
+        /*
+         * V53 ile kanıtlanan Sinefy akışı statik HTTP extractor değildir:
+         * detail/episode -> pichive iframe -> gerçek browser/runtime -> Play/session ->
+         * runtime JSON source -> dinamik HLS -> manifest/media proof.
+         *
+         * Bu nedenle source2.php tokenı, cookie veya final HLS burada tahmin edilmez.
+         * Mevcut PARS browser resolver mekanizmasına gerçek içerik URL'si teslim edilir.
+         * FullHDFilmizlesene modülündeki çalışan handoff sözleşmesi korunmuştur.
+         */
+        Log.d("PARS_SINEFY", "V53_BROWSER_HANDOFF detail=$data")
 
-        val iframe = watchDoc.select("iframe[src]")
-            .mapNotNull { fixUrlNull(it.attr("src")) }
-            .firstOrNull { it.contains("/iframe.php") || it.contains("/embed") || it.contains("/player") }
-            ?: watchDoc.select("iframe[src]").firstOrNull()?.attr("src")?.let(::fixUrlNull)
-            ?: return false
-
-        Log.d("PARS_SINEFY", "PLAYER_IFRAME=$iframe")
-        val playerHost = runCatching { URI(iframe).let { "${it.scheme}://${it.host}" } }.getOrNull() ?: return false
-        val playerHeaders = mapOf(
-            "User-Agent" to ua,
-            "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-        )
-        val player = app.get(iframe, headers = playerHeaders, referer = data)
-        val html = player.text
-
-        // Önce HTML/inline script içinde gerçekten bulunan kaynakları kullan.
-        val direct = extractHttpUrls(html).firstOrNull { it.contains(".m3u8", true) || it.contains("/m.php?", true) }
-        if (direct != null) {
-            emitHls(direct, iframe, callback)
-            return true
-        }
-
-        // V53 kanıtı: player runtime source2.php JSON -> playlist[].sources[].file -> HLS.
-        // Endpoint/token TAHMİN EDİLMEZ; yalnız dökümanda/scriptte gerçekten gözlenen tam URL çağrılır.
-        val bootstrap = extractHttpUrls(html).firstOrNull { it.contains("source2.php?", true) }
-            ?: Regex("""(?:https?:)?//[^\"'\\s]+/source2\\.php\\?v=[^\"'\\s<]+""", RegexOption.IGNORE_CASE)
-                .find(html)?.value?.let { if (it.startsWith("//")) "https:$it" else it }
-
-        if (bootstrap == null) {
-            Log.e("PARS_SINEFY", "RUNTIME_BOOTSTRAP_NOT_STATIC: V53 bu playerda source2 isteginin browser runtime/Play sonrasi olustugunu kanitladi. URL tahmin edilmedi.")
-            return false
-        }
-
-        val jsonText = app.get(
-            bootstrap,
-            headers = mapOf(
-                "User-Agent" to ua,
-                "Accept" to "application/json, text/javascript, */*; q=0.01"
-            ),
-            referer = iframe
-        ).text
-        val parsed = runCatching { AppUtils.parseJson<PichiveResponse>(jsonText) }.getOrNull() ?: return false
-        val sources = parsed.playlist.orEmpty().flatMap { it.sources.orEmpty() }
-        var emitted = false
-        sources.forEach { src ->
-            val file = src.file?.takeIf { it.startsWith("http") } ?: return@forEach
-            if (src.type.equals("hls", true) || file.contains(".m3u8", true) || file.contains("/m.php?", true)) {
-                emitHls(file, iframe, callback, src.title)
-                emitted = true
+        callback.invoke(
+            newExtractorLink(
+                source = "PARS V53 Browser",
+                name = "PARS V53 Browser",
+                url = data,
+                type = ExtractorLinkType.VIDEO
+            ) {
+                this.referer = data
+                this.headers = mapOf(
+                    "User-Agent" to ua,
+                    "Referer" to data,
+                    "X-PARS-WEBVIEW" to "1",
+                    "X-PARS-DETAIL-REFERER" to data
+                )
+                this.quality = Qualities.Unknown.value
             }
-        }
-        return emitted
+        )
+        return true
     }
-
-    private fun emitHls(url: String, iframe: String, callback: (ExtractorLink) -> Unit, label: String? = null) {
-        callback(newExtractorLink(
-            source = name,
-            name = label?.takeIf { it.isNotBlank() }?.let { "$name - $it" } ?: name,
-            url = url,
-            type = ExtractorLinkType.M3U8
-        ) {
-            referer = iframe
-            headers = mapOf("User-Agent" to ua, "Referer" to iframe, "Accept" to "*/*")
-            quality = Qualities.Unknown.value
-        })
-    }
-
-    private fun extractHttpUrls(text: String): List<String> {
-        val normalized = text
-            .replace("\\/", "/")
-            .replace("&amp;", "&")
-            .replace("\\u0026", "&")
-        return Regex("""https?://[^\"'<>\\s]+""", RegexOption.IGNORE_CASE)
-            .findAll(normalized).map { it.value.trimEnd(')', ']', '}', ',', ';') }.distinct().toList()
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class PichiveResponse(
-        @JsonProperty("state") val state: Boolean? = null,
-        @JsonProperty("playlist") val playlist: List<PichivePlaylist>? = null
-    )
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class PichivePlaylist(
-        @JsonProperty("sources") val sources: List<PichiveSource>? = null
-    )
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class PichiveSource(
-        @JsonProperty("type") val type: String? = null,
-        @JsonProperty("title") val title: String? = null,
-        @JsonProperty("file") val file: String? = null
-    )
 }
