@@ -32,7 +32,7 @@ class Dizipal : MainAPI() {
     )
 
     companion object {
-        private const val SEED_BASE = "https://dizipal2130.com"
+        private const val SEED_BASE = "https://dizipal2133.com"
         private const val STABLE_CANONICAL_HOST = "https://guj-international-brands.com"
         private const val DOMAIN_CACHE_MS = 15L * 60L * 1000L
         private const val USER_AGENT =
