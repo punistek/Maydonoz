@@ -1,0 +1,3032 @@
+{
+  "features": {
+    "filter": [
+      {
+        "id": "group",
+        "name": "Group",
+        "values": [
+          "Albania",
+          "Arabia",
+          "Balkans",
+          "Bulgaria",
+          "Croatia",
+          "France",
+          "France Sport",
+          "Germany",
+          "Italy",
+          "Netherlands",
+          "Poland",
+          "Portugal",
+          "Romania",
+          "Russia",
+          "Spain",
+          "Turkey",
+          "United Kingdom"
+        ]
+      }
+    ]
+  },
+  "nextCursor": 300,
+  "items": [
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3840475653430b3726024b"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3840475653430b3726024b",
+      "name": "BEIN SPORTS 1 (720P) |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3840475653.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2233066433a8f6eae09642"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2233066433a8f6eae09642",
+      "name": "BEIN SPORTS 1 (720PFEED) |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2233066433.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "257621689779b8fed9899e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/257621689779b8fed9899e",
+      "name": "BEIN SPORTS 1 + |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2576216897.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "593493860189d11f7fa05"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/593493860189d11f7fa05",
+      "name": "BEIN SPORTS 1 HD (TURKEY) |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=593493860.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2325261286da82934849d6"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2325261286da82934849d6",
+      "name": "4K TR: ATV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "167767968435d22ec4e572"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/167767968435d22ec4e572",
+      "name": "4K TR: KANAL D HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "6621796209b1d59f3eb10"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/6621796209b1d59f3eb10",
+      "name": "BEIN SPORTS 1 HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=662179620.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "17711375392d6892b04f39"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/17711375392d6892b04f39",
+      "name": "4K TR: A SPOR HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "805689873d1f86dda0ea7"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/805689873d1f86dda0ea7",
+      "name": "4K TR: BEYAZ TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "135242105312913bfa342d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/135242105312913bfa342d",
+      "name": "BEIN SPORTS 1 50 FPS |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1352421053.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "21232735982e32865f30ff"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/21232735982e32865f30ff",
+      "name": "4K TR: S SPORT |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1762199258bc99baf9f471"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1762199258bc99baf9f471",
+      "name": "4K TR: TRT 1 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3428984703931537ad5cb4"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3428984703931537ad5cb4",
+      "name": "BEIN SPORTS 1 [LIVE DURING EVENTS ONLY] |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3718336295df22a5d5825d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3718336295df22a5d5825d",
+      "name": "S SPORT |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1064954896823e0373977d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1064954896823e0373977d",
+      "name": "4K TR: A HABER HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2056768647b3cd3bee1ca9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2056768647b3cd3bee1ca9",
+      "name": "4K TR: CNN T RK HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "93690827446cf78e93279"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/93690827446cf78e93279",
+      "name": "4K TR: S SPORT 2 |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "879588960b94fb8fa2dd0"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/879588960b94fb8fa2dd0",
+      "name": "4K TR: SHOW TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1363827223785a15d8757e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1363827223785a15d8757e",
+      "name": "BEIN 1 FEED (720P) |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1363827223.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "35317621955a43bd93b947"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/35317621955a43bd93b947",
+      "name": "S-SPORT 1 UHD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3531762195.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2196709234a54a76672d16"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2196709234a54a76672d16",
+      "name": "TV 8 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3278185898d295d5f0835f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3278185898d295d5f0835f",
+      "name": "4K TR: CARTOON NETWORK |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2078862937dc11f33ed82b"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2078862937dc11f33ed82b",
+      "name": "4K TR: EUROSPORT 1 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "257819759392b353c7c9cd"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/257819759392b353c7c9cd",
+      "name": "4K TR: NOW HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "369233724100976de8b4ea"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/369233724100976de8b4ea",
+      "name": "BEIN 1 SD (360P) |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3692337241.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2919229346e755c71b26ac"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2919229346e755c71b26ac",
+      "name": "BEIN 1 SD (480P) |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2919229346.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "30011339466381ddac1fe"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/30011339466381ddac1fe",
+      "name": "BEIN SPORTS 1 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=300113394.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "27290886061b49e95702e6"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/27290886061b49e95702e6",
+      "name": "BEIN SPORTS 1 FEED |E",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "10209850351409a86d3f42"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/10209850351409a86d3f42",
+      "name": "BEYAZ HD+ SD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1020985035.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "334654972230cb8b87fc4c"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/334654972230cb8b87fc4c",
+      "name": "S SPORT |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3346549722.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1313768516f4e2fb1853d4"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1313768516f4e2fb1853d4",
+      "name": "S SPORT 2 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1313768516.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1507829436971531d2460b"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1507829436971531d2460b",
+      "name": "S SPORT+4 MAC SAATI |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1507829436.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "29528282455c5d0324aee3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/29528282455c5d0324aee3",
+      "name": "TRT SPOR FHD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2952828245.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "38494812994251a1d3349d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/38494812994251a1d3349d",
+      "name": "TV8 FHD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3849481299.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "20190552770d1c1a3c2413"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/20190552770d1c1a3c2413",
+      "name": "4K TR: A2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1758313456e08f6bd1e68d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1758313456e08f6bd1e68d",
+      "name": "4K TR: BABYTV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "410345406299d44c79038"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/410345406299d44c79038",
+      "name": "4K TR: DA VINCI |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4017734592ca62e60551e2"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4017734592ca62e60551e2",
+      "name": "4K TR: DISCOVERY CHANNEL HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "6492287223aeb9641d173"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/6492287223aeb9641d173",
+      "name": "4K TR: DISNEY JUNIOR |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "426668302523b70cecff67"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/426668302523b70cecff67",
+      "name": "4K TR: DREAM T RK |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "170912918959ad96b3ea7b"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/170912918959ad96b3ea7b",
+      "name": "4K TR: DUCK TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "270621004988468cbd1a9a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/270621004988468cbd1a9a",
+      "name": "4K TR: EKOL TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "678261693dddf74618b2a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/678261693dddf74618b2a",
+      "name": "4K TR: EPIC DRAMA |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "411722796226260c919a04"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/411722796226260c919a04",
+      "name": "4K TR: EUROSPORT 2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3730681078c47dd7a33759"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3730681078c47dd7a33759",
+      "name": "4K TR: FB TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "26870178411ec494ca52e7"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/26870178411ec494ca52e7",
+      "name": "4K TR: FLASH TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "15614953190ad560802cc0"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/15614953190ad560802cc0",
+      "name": "4K TR: FX HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "119662638752f4a2975591"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/119662638752f4a2975591",
+      "name": "4K TR: HABER GLOBAL HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1320391955dfdc732d6056"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1320391955dfdc732d6056",
+      "name": "4K TR: HALK TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "10926679593933319c6c99"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/10926679593933319c6c99",
+      "name": "4K TR: KANAL 7 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1230912428e2d7def5a827"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1230912428e2d7def5a827",
+      "name": "4K TR: M N KA GO |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "132416616ac620ec2effb"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/132416616ac620ec2effb",
+      "name": "4K TR: NATIONAL GEOGRAPHIC WILD HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "54554813362c2d3f24a58"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/54554813362c2d3f24a58",
+      "name": "4K TR: NBA TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "10766438567db56db901b5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/10766438567db56db901b5",
+      "name": "4K TR: S NEMA 1002 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "300059476388b72e860936"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/300059476388b72e860936",
+      "name": "4K TR: S NEMA A LE 2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3971603427f67ea837a51a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3971603427f67ea837a51a",
+      "name": "4K TR: S NEMA YERL 2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "189715947315e62fa64292"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/189715947315e62fa64292",
+      "name": "4K TR: S NEMA YERL HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "960578312686f0f29e07c"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/960578312686f0f29e07c",
+      "name": "4K TR: SOZCU TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "31596047b5c3cd870145"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/31596047b5c3cd870145",
+      "name": "4K TR: SPOR SMART |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2192971293c97637353600"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2192971293c97637353600",
+      "name": "4K TR: STAR TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1907154704d312eb8b3377"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1907154704d312eb8b3377",
+      "name": "4K TR: TGRT HABER HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "970382162ddd50ab9fa1f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/970382162ddd50ab9fa1f",
+      "name": "4K TR: TRT M Z K |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3508477481da6e398ed11e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3508477481da6e398ed11e",
+      "name": "4K TR: TRT T RK |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "269329901340b62e2f02eb"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/269329901340b62e2f02eb",
+      "name": "4K TR: TV8 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "15619589718ca092723846"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/15619589718ca092723846",
+      "name": "A SPOR |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2880529208257fe551786e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2880529208257fe551786e",
+      "name": "A SPOR HEVC |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "455930425ae47a61530c5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/455930425ae47a61530c5",
+      "name": "ATV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=455930425.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "12555943375da7df57f8b3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/12555943375da7df57f8b3",
+      "name": "ATV |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "28610106417464cee3333d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/28610106417464cee3333d",
+      "name": "ATV FHD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2861010641.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1332310706fc46b2298b36"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1332310706fc46b2298b36",
+      "name": "ATV HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1332310706.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "24034250311fdb297b466e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/24034250311fdb297b466e",
+      "name": "BEIN SPORTS 1 H265 |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2403425031.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "144724150649fb3ed7eec1"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/144724150649fb3ed7eec1",
+      "name": "BEIN SPORTS 2 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1447241506.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "267105889df7eebc2e471"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/267105889df7eebc2e471",
+      "name": "BEIN SPORTS 4K FEED(KUTU) |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1536730627473741d29b73"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1536730627473741d29b73",
+      "name": "BEIN SPORTS 4K FEED(UYDU) |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "27557560055eaff11704f2"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/27557560055eaff11704f2",
+      "name": "BEYAZ TV HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2755756005.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "42731539671f259560916d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/42731539671f259560916d",
+      "name": "CNN TURK HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=4273153967.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2315839051646c1ce130f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2315839051646c1ce130f",
+      "name": "KANAL D |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1371306270a6fe1a906bfc"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1371306270a6fe1a906bfc",
+      "name": "KANAL D HD (H265) |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1371306270.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "7120400852d692d4b914d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/7120400852d692d4b914d",
+      "name": "KANAL D SD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=712040085.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1234604880c7638b38f698"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1234604880c7638b38f698",
+      "name": "S SPORT 2 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "32693723268b5c871a5e91"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/32693723268b5c871a5e91",
+      "name": "S SPORT+3 MAC SAATI |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3269372326.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1183409452f74cc8d9c294"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1183409452f74cc8d9c294",
+      "name": "S-SPORT 2 HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1183409452.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "91999316826a6bc9d1107"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/91999316826a6bc9d1107",
+      "name": "S-SPORT HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=919993168.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3526620942b07f6d954675"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3526620942b07f6d954675",
+      "name": "S-SPORT PLUS 1 MACZAMANI |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "32767092396de1f4e3bad7"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/32767092396de1f4e3bad7",
+      "name": "S-SPORT PLUS 2 MACZAMANI |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2041026135be1c016f37d4"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2041026135be1c016f37d4",
+      "name": "TRT 1 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2041026135.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4066666828dc878f18e91"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4066666828dc878f18e91",
+      "name": "TRT 1 FHD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=406666682.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1702937932c3bb46dbcdc9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1702937932c3bb46dbcdc9",
+      "name": "24 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "38287936160beb47c9450a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/38287936160beb47c9450a",
+      "name": "24 HABER HD+ SD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "53602918686c0a0ed45ee"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/53602918686c0a0ed45ee",
+      "name": "24 RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3822901239bd6be40caf9f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3822901239bd6be40caf9f",
+      "name": "24 TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3822901239.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "8654109516587999fb06e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/8654109516587999fb06e",
+      "name": "360 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=865410951.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "16514551990e3d8db6f32c"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/16514551990e3d8db6f32c",
+      "name": "360 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "189359800041a1bea06833"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/189359800041a1bea06833",
+      "name": "360 PLUS |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "199816812259f0b53e0987"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/199816812259f0b53e0987",
+      "name": "4K TR: 24 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4733005734f00de856f2a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4733005734f00de856f2a",
+      "name": "4K TR: 360 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3445585687ff1b781a9c66"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3445585687ff1b781a9c66",
+      "name": "4K TR: AK T TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "27023767901b13d692350f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/27023767901b13d692350f",
+      "name": "4K TR: BENG T RK |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "315207916815ac1a14c16e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/315207916815ac1a14c16e",
+      "name": "4K TR: BLOOMBERG HT HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3510107618157e299b70a2"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3510107618157e299b70a2",
+      "name": "4K TR: BOOMERANG |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "869937351a88d2213b307"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/869937351a88d2213b307",
+      "name": "4K TR: DMAX HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "194469526890e8a6e97e7"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/194469526890e8a6e97e7",
+      "name": "4K TR: EXXEN TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "42533693767c6c65924ea5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/42533693767c6c65924ea5",
+      "name": "4K TR: HABERT RK HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "32663971466b628514cc37"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/32663971466b628514cc37",
+      "name": "4K TR: KRT TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1839766333c98345854971"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1839766333c98345854971",
+      "name": "4K TR: LKE TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "700381068b8ceab1f04d9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/700381068b8ceab1f04d9",
+      "name": "4K TR: MELTEM TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "9886913740c93609273d6"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/9886913740c93609273d6",
+      "name": "4K TR: NICKTOONS |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "243255622413f3be75d798"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/243255622413f3be75d798",
+      "name": "4K TR: NR1 DAMAR HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2073292907b82518f90591"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2073292907b82518f90591",
+      "name": "4K TR: NTV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4042887584d25b9dea1652"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4042887584d25b9dea1652",
+      "name": "4K TR: NUMBER1 TURK HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1307965662108e5d5c4b4b"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1307965662108e5d5c4b4b",
+      "name": "4K TR: POWER TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "34407115801c767459d612"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/34407115801c767459d612",
+      "name": "4K TR: S NEMA AKS YON 2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4407749494f84856f03db"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4407749494f84856f03db",
+      "name": "4K TR: S NEMA KOMED HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2761385166466a6f28d774"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2761385166466a6f28d774",
+      "name": "4K TR: S NEMA TV 1001 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2950605243455369fa6da"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2950605243455369fa6da",
+      "name": "4K TR: S NEMA TV 2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2246993811be012a90fa2a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2246993811be012a90fa2a",
+      "name": "4K TR: S NEMA TV AKS YON HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "27808300333177fd7b2331"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/27808300333177fd7b2331",
+      "name": "4K TR: S NEMA TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "298064721a6ac412d89d0"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/298064721a6ac412d89d0",
+      "name": "4K TR: TELE 1 |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1917502631f13fff05089a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1917502631f13fff05089a",
+      "name": "4K TR: TEVE2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2794936913f4021be82bb1"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2794936913f4021be82bb1",
+      "name": "4K TR: TJK TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "388431903371d3ffd67aca"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/388431903371d3ffd67aca",
+      "name": "4K TR: TRT 2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "41874035123d237233ea9c"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/41874035123d237233ea9c",
+      "name": "4K TR: TRT 3 |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "29904103523a8cc61e5fb5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/29904103523a8cc61e5fb5",
+      "name": "4K TR: TRT AVAZ |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "7869736564cc06a9c7d38"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/7869736564cc06a9c7d38",
+      "name": "4K TR: TRT BELGESEL HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "603651638223283592b1c"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/603651638223283592b1c",
+      "name": "4K TR: TRT HABER HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1216632307c4c1e6a59035"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1216632307c4c1e6a59035",
+      "name": "4K TR: TRT KURD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2750507083bc98671bc83c"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2750507083bc98671bc83c",
+      "name": "4K TR: TRT SPOR YILDIZ |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "6267901461a9f7ecdba87"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/6267901461a9f7ecdba87",
+      "name": "4K TR: TV 100 |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3574429625133873ea3f7"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3574429625133873ea3f7",
+      "name": "4K TR: TV 4 |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1886743624c817d4676a81"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1886743624c817d4676a81",
+      "name": "4K TR: TV8,5 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1738739277c7bdedc66c15"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1738739277c7bdedc66c15",
+      "name": "4K TR: TVNET HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1451950581a02a7c237d82"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1451950581a02a7c237d82",
+      "name": "4K TR: VIASAT EXPLORE |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "13351302090309885174f7"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/13351302090309885174f7",
+      "name": "4K TR: VIASAT HISTORY HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1596095882fdd4026d36d3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1596095882fdd4026d36d3",
+      "name": "A HABER |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1596095882.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1174108535ca4e47f4a7d3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1174108535ca4e47f4a7d3",
+      "name": "A HABER |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "38920170147831aa931b8f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/38920170147831aa931b8f",
+      "name": "A PARA |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3892017014.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4202445834465d29da6f7d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4202445834465d29da6f7d",
+      "name": "A PARA RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "911836506194160f9e86b"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/911836506194160f9e86b",
+      "name": "A SPOR FHD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=911836506.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "25567110304fffde3b8356"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/25567110304fffde3b8356",
+      "name": "A SPOR HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2556711030.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2777121053d08600063c17"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2777121053d08600063c17",
+      "name": "A SPOR RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "867875861a86b82795c86"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/867875861a86b82795c86",
+      "name": "A2 HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=867875861.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "14575589141907d1e6cec"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/14575589141907d1e6cec",
+      "name": "AFYON T RK TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "76941483751bb11437f14"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/76941483751bb11437f14",
+      "name": "ALTAS TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=769414837.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2110161355adff89271356"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2110161355adff89271356",
+      "name": "ANIMAL PLANET |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "754868351e9c34c8d8bc4"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/754868351e9c34c8d8bc4",
+      "name": "ANLIURFA KANAL URFA |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3293739828db3ecb0d1130"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3293739828db3ecb0d1130",
+      "name": "ARKADAG |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3293739828.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1889158339131076dab8f9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1889158339131076dab8f9",
+      "name": "AS TV BURSA |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1889158339.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "129909794f57787e5c036"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/129909794f57787e5c036",
+      "name": "ATV HD (H265) |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=129909794.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3511150491d9aba587f467"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3511150491d9aba587f467",
+      "name": "ATV HEVC |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3511150491.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "645431530688336af9930"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/645431530688336af9930",
+      "name": "ATV SD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1044947667e084aa89b4cd"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1044947667e084aa89b4cd",
+      "name": "BAHA |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "222849685684ff542877de"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/222849685684ff542877de",
+      "name": "BBC EARTH HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "354266190464d487cbd1b7"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/354266190464d487cbd1b7",
+      "name": "BBC EARTH PREMIERE |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2930746102f2e4a5b256f5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2930746102f2e4a5b256f5",
+      "name": "BEIN BOX OFFICE 1 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2930746102.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3910129702a06380e6b72f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3910129702a06380e6b72f",
+      "name": "BEIN BOX OFFICE 2 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3910129702.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "358323085863cb2e070a61"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/358323085863cb2e070a61",
+      "name": "BEIN GURME |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "11255232626f1b348d06b4"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/11255232626f1b348d06b4",
+      "name": "BEIN SERIES VICE |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "109703960a846193dc078"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/109703960a846193dc078",
+      "name": "BEIN SPORTS 4 SD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "123044819294be31c3aa03"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/123044819294be31c3aa03",
+      "name": "BEIN SPORTS 5 (MATCH TIME) |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "273796348642fb87ac24d5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/273796348642fb87ac24d5",
+      "name": "BEIN SPORTS 5 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "36778805468c87a82d46fd"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/36778805468c87a82d46fd",
+      "name": "BENGUTURK |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "40086029282f9ad3ee9470"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/40086029282f9ad3ee9470",
+      "name": "BEST AKSIYON |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1324126222211fe9a5ef76"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1324126222211fe9a5ef76",
+      "name": "BEST WESTERN |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3652347263f7e4f6518946"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3652347263f7e4f6518946",
+      "name": "BEST YESILCAM |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3418237531aa6c4be3f243"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3418237531aa6c4be3f243",
+      "name": "BEYAZ TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3418237531.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "16003488113c5e919349c9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/16003488113c5e919349c9",
+      "name": "BEYAZ TV FHD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1600348811.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2224047651e81fecfc9897"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2224047651e81fecfc9897",
+      "name": "BILGILENDIRME |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2224047651.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2603224141c3d864520670"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2603224141c3d864520670",
+      "name": "BLOOMBERG |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2238665357a29b6454271"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2238665357a29b6454271",
+      "name": "BLOOMBERG HT |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=223866535.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "27932543160513e6702a80"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/27932543160513e6702a80",
+      "name": "BRT 1 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2793254316.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "26676595146b99532e5638"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/26676595146b99532e5638",
+      "name": "BRT 1 RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "131360085152897b479b07"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/131360085152897b479b07",
+      "name": "CARTOON NETWORK HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3185778667f715ae898254"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3185778667f715ae898254",
+      "name": "CIFTCI TV |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3278683973f0afa7ac38fb"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3278683973f0afa7ac38fb",
+      "name": "CNN TURK |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1884291733e32c3cd7e9a5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1884291733e32c3cd7e9a5",
+      "name": "ÇOCUK SMART |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1884291733.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4022359276de9b7f529de4"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4022359276de9b7f529de4",
+      "name": "DHA |E",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1072972009a43561689b4d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1072972009a43561689b4d",
+      "name": "DIM TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1072972009.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "209540406020f62c57175e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/209540406020f62c57175e",
+      "name": "DISCOVERY ID |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "9390276747a6286ae9e85"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/9390276747a6286ae9e85",
+      "name": "DIYANET TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4079530614434808c2d545"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4079530614434808c2d545",
+      "name": "DIZI SMART MAX |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3928493138c142d1308d20"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3928493138c142d1308d20",
+      "name": "DMAX HEVC |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3928493138.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "896813028d984c9f3db64"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/896813028d984c9f3db64",
+      "name": "DOST TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=896813028.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "354840976488a9ec6ce5af"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/354840976488a9ec6ce5af",
+      "name": "DREAM DRAM |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3316189195149d67a925b8"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3316189195149d67a925b8",
+      "name": "EBA TV ILKOKUL |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3316189195.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2154492528488c4668658d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2154492528488c4668658d",
+      "name": "EDESSA TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2154492528.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "12904348901d58c6e55a2d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/12904348901d58c6e55a2d",
+      "name": "EURO D |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1290434890.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2778910791069ede623715"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2778910791069ede623715",
+      "name": "FIX CINEMA KORKU |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "29580754431181a955c2cc"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/29580754431181a955c2cc",
+      "name": "FIX CINEMA MACERA |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "427544619762ec2584a402"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/427544619762ec2584a402",
+      "name": "GLOBAL BOX KEMAL SUNAL |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "55116964e84e2e6cbc23"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/55116964e84e2e6cbc23",
+      "name": "GURBET24 TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=55116964.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "398644410658a660ba5f49"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/398644410658a660ba5f49",
+      "name": "HALK TV |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2773338492c97bd1ae5ddd"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2773338492c97bd1ae5ddd",
+      "name": "HT SPOR HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1993949957e1558cf0c0e3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1993949957e1558cf0c0e3",
+      "name": "IDMAN TV |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "38723286003580143700a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/38723286003580143700a",
+      "name": "KANAL D |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=387232860.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "17816560980c2d2941af7c"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/17816560980c2d2941af7c",
+      "name": "KANAL D FHD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1130441933bd5f93081361"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1130441933bd5f93081361",
+      "name": "KANAL D HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "353384054f9effde9a972"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/353384054f9effde9a972",
+      "name": "MOVIE SMART TURK |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "248028480624695996920a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/248028480624695996920a",
+      "name": "PATRON BEBEK HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "320290523a3aa65f45505"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/320290523a3aa65f45505",
+      "name": "S-SPORTS 1 SD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=320290523.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1221669131537ab85f5399"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1221669131537ab85f5399",
+      "name": "TRT 1 HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1221669131.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1702470161aaf1333bbf58"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1702470161aaf1333bbf58",
+      "name": "TV8 HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1702470161.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4285350247d9108523af16"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4285350247d9108523af16",
+      "name": "24 KITCHEN HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "170264519118ae819835cf"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/170264519118ae819835cf",
+      "name": "360 RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3578706863286354cd125b"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3578706863286354cd125b",
+      "name": "4K TR: LOVE NATURE HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "248538205f11003d3b622"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/248538205f11003d3b622",
+      "name": "4K TR: M N KA OCUK |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "107835532503bcbd64d2a1"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/107835532503bcbd64d2a1",
+      "name": "4K TR: NATIONAL GEOGRAPHIC HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1526602599a96cf3113544"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1526602599a96cf3113544",
+      "name": "4K TR: NUMBER1 TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "698495811260934a7c4b1"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/698495811260934a7c4b1",
+      "name": "4K TR: S NEMA A LE HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "24292987981a22e1c17330"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/24292987981a22e1c17330",
+      "name": "4K TR: SPORTS TV HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "30291805060c483e92cd8c"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/30291805060c483e92cd8c",
+      "name": "4K TR: TRT OCUK HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "5352726017e63108dd805"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/5352726017e63108dd805",
+      "name": "A HABER HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=535272601.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "37668467231b83a46cb8a4"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/37668467231b83a46cb8a4",
+      "name": "A HABER HEVC |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "25117320244c52f545acf9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/25117320244c52f545acf9",
+      "name": "A HABER RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "81213162939a8a3e2cd43"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/81213162939a8a3e2cd43",
+      "name": "A NEWS |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=812131629.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1571071214864147dd5e29"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1571071214864147dd5e29",
+      "name": "A NEWS |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3878908897bd0ff5b02327"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3878908897bd0ff5b02327",
+      "name": "A NEWS HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "341546210553da3b2b78b3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/341546210553da3b2b78b3",
+      "name": "A NEWS RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "23189234458f5b4e3dc7fa"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/23189234458f5b4e3dc7fa",
+      "name": "A PARA |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "819272696b1a82271359d"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/819272696b1a82271359d",
+      "name": "A SPOR |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=819272696.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "17358068518fb13559e6ab"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/17358068518fb13559e6ab",
+      "name": "A2 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1289576145f4a30966b62f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1289576145f4a30966b62f",
+      "name": "A2 HEVC |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1289576145.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1905749779d36a3298c714"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1905749779d36a3298c714",
+      "name": "A2 RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "18358479662c858232ad42"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/18358479662c858232ad42",
+      "name": "A2 TV SD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1835847966.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2134735285eb4e9477400e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2134735285eb4e9477400e",
+      "name": "ADA TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2134735285.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "30552353910c48c343612a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/30552353910c48c343612a",
+      "name": "ADIYAMAN MERCAN TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2080590427ab8abe176e0"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2080590427ab8abe176e0",
+      "name": "AFROTURK TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=208059042.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1782534194d31f1c543fbe"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1782534194d31f1c543fbe",
+      "name": "AFYON TURK |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1633587820a5082dd564ac"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1633587820a5082dd564ac",
+      "name": "AGRO TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1633587820.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "29298467509ae1748df16"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/29298467509ae1748df16",
+      "name": "AHMET KAYA |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "409300164034b544791651"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/409300164034b544791651",
+      "name": "AKILLI TAVSAN MOMO |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2702391715bba1d82eccfe"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2702391715bba1d82eccfe",
+      "name": "AKIT TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1948681011de48f4d60794"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1948681011de48f4d60794",
+      "name": "AKIT TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1948681011.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3737299250c382cd16cb2e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3737299250c382cd16cb2e",
+      "name": "AKLILI TV |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2170702658d8e84bd251e6"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2170702658d8e84bd251e6",
+      "name": "AKSU TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2170702658.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2914289476b213117b7770"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2914289476b213117b7770",
+      "name": "AKSU TV K MARAS |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "287303002800c2456e5a14"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/287303002800c2456e5a14",
+      "name": "ALANYA POSTA TV |E",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "809445873adc87cc8e714"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/809445873adc87cc8e714",
+      "name": "ALEM RADYO |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "7302573498a38de2e7b05"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/7302573498a38de2e7b05",
+      "name": "ALTAS TV ORDU |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "14683890146cf879ab0fb2"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/14683890146cf879ab0fb2",
+      "name": "ANADOLU DERNEK |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4274827801f0390b6f8bf7"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4274827801f0390b6f8bf7",
+      "name": "ANADOLU DERNEK TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3978460736665b66120e25"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3978460736665b66120e25",
+      "name": "ANADOLU DERNEK TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3978460736.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "19435782233b5a14b6f03a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/19435782233b5a14b6f03a",
+      "name": "ANAKKALE BOĞAZ TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4250561695d49be6085f37"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4250561695d49be6085f37",
+      "name": "ANAKKALE TON TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3913298991992a791b01df"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3913298991992a791b01df",
+      "name": "ANIMAL PLANET HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "72742743738453dfd617f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/72742743738453dfd617f",
+      "name": "ANIMATION 1 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "144335536316f4282a128f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/144335536316f4282a128f",
+      "name": "ANKARA T RKIYEM TV |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1940767005c748bebdc2f3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1940767005c748bebdc2f3",
+      "name": "ANTALYA KANAL V |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "93140640929945f44efb6"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/93140640929945f44efb6",
+      "name": "APARA HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=931406409.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "5117383846d24117d1532"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/5117383846d24117d1532",
+      "name": "ARAS TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=511738384.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2853730703041b6d51db97"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2853730703041b6d51db97",
+      "name": "ARENA BOX ACTION |E",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "25937003239fee2c1fbe0"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/25937003239fee2c1fbe0",
+      "name": "ARTI TV |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "20845874376ca1ffb7fed9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/20845874376ca1ffb7fed9",
+      "name": "AS TV BURSA |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "319591035170cfb925a409"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/319591035170cfb925a409",
+      "name": "ATV AVRUPA |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3195910351.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "962169494a29c41c35a92"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/962169494a29c41c35a92",
+      "name": "ATV RAW |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=962169494.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "303351296370f4c2f054e5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/303351296370f4c2f054e5",
+      "name": "AUTOMOTO (FR) |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "382042085514f3f35bf1b4"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/382042085514f3f35bf1b4",
+      "name": "BABY TV |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3820420855.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "4184865290d42727cb42b9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/4184865290d42727cb42b9",
+      "name": "BABY TV |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2805731236e2a2f0b202f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2805731236e2a2f0b202f",
+      "name": "BARBIE ANIMATION 2 HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2618455562b77b2a0d88a2"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2618455562b77b2a0d88a2",
+      "name": "BBC EARTH |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2618455562.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "132036385097914b13e539"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/132036385097914b13e539",
+      "name": "BEIN BOX OFFICE 1 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "35641061345556a121aa64"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/35641061345556a121aa64",
+      "name": "BEIN BOX OFFICE 3 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3564106134.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "9503946568377e1ba14c8"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/9503946568377e1ba14c8",
+      "name": "BEIN GURME HD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "16912230782de6c2ba1978"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/16912230782de6c2ba1978",
+      "name": "BEIN IZ |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1691223078.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "18734781318dbae7eb6421"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/18734781318dbae7eb6421",
+      "name": "BEIN MOVIES ACTION |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1873478131.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3041245607d0287332800f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3041245607d0287332800f",
+      "name": "BEIN MOVIES ACTION |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "650851542a4bc4db69c93"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/650851542a4bc4db69c93",
+      "name": "BEIN MOVIES ACTION 2 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "24851991523ab5180680ed"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/24851991523ab5180680ed",
+      "name": "BEIN MOVIES FAMILY |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2485199152.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "21977479645d54362c5209"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/21977479645d54362c5209",
+      "name": "BEIN MOVIES PREMIERE |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2244069093c6fbea6af4e9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2244069093c6fbea6af4e9",
+      "name": "BEIN MOVIES PREMIERE 2 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2244069093.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "21202183563f547f163f28"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/21202183563f547f163f28",
+      "name": "BEIN MOVIES PREMIERE 2 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2500913164c25db092574e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2500913164c25db092574e",
+      "name": "BEIN MOVIES STARS |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2500913164.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1963748784d1371e82f1f5"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1963748784d1371e82f1f5",
+      "name": "BEIN MOVIES STARS |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "33905759482053e27c9b0f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/33905759482053e27c9b0f",
+      "name": "BEIN MOVIES TURK |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3390575948.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1835579025421e0b46c42e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1835579025421e0b46c42e",
+      "name": "BEIN MOVIES TURK |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "330869373817c4fab6cf32"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/330869373817c4fab6cf32",
+      "name": "BEIN SERIES 2 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3308693738.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "41664187788b1f13619a77"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/41664187788b1f13619a77",
+      "name": "BEIN SERIES 3 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=4166418778.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "12492711145e9f6607b9ba"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/12492711145e9f6607b9ba",
+      "name": "BEIN SERIES 4 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1249271114.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "34136721037c258084eaf0"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/34136721037c258084eaf0",
+      "name": "BEIN SERIES DRAMA |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3413672103.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "727975195eec6107eb17b"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/727975195eec6107eb17b",
+      "name": "BEIN SERIES DRAMA |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3016529666dac6c6cef893"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3016529666dac6c6cef893",
+      "name": "BEIN SERIES SCI-FI |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "25094661918ca2565bad99"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/25094661918ca2565bad99",
+      "name": "BEIN SPORTS 2 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2851539143a8ccc3d357a3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2851539143a8ccc3d357a3",
+      "name": "BEIN SPORTS 2 HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=2851539143.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "32363629118af6d1bc5de8"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/32363629118af6d1bc5de8",
+      "name": "BEIN SPORTS 2 SD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3236362911.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "17974596029fac8029a46a"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/17974596029fac8029a46a",
+      "name": "BEIN SPORTS 3 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1797459602.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "283451494386b77a7c47f0"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/283451494386b77a7c47f0",
+      "name": "BEIN SPORTS 3 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "170059580149fb700b1df3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/170059580149fb700b1df3",
+      "name": "BEIN SPORTS 3 HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1700595801.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2063713299b05d8f73388"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2063713299b05d8f73388",
+      "name": "BEIN SPORTS 3 SD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=206371329.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "34101675603c7aea8fa6b1"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/34101675603c7aea8fa6b1",
+      "name": "BEIN SPORTS 3 UHD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3410167560.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "450076655fd40408ed702"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/450076655fd40408ed702",
+      "name": "BEIN SPORTS 4 |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "18722327683304e835920e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/18722327683304e835920e",
+      "name": "BEIN SPORTS 4 HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1872232768.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "383175761899a7add480e9"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/383175761899a7add480e9",
+      "name": "BEIN SPORTS 5 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3831757618.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "3391353734a52c76e2a62f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/3391353734a52c76e2a62f",
+      "name": "BEIN SPORTS 5 SD |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "499485497f2a87372fca3"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/499485497f2a87372fca3",
+      "name": "BEIN SPORTS 720P FEED |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "21134623980ed579742af1"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/21134623980ed579742af1",
+      "name": "BEIN SPORTS 8K FEED |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "14536923141c3ea015b82f"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/14536923141c3ea015b82f",
+      "name": "BEIN SPORTS FEED (OZEL FEED YAYIN) |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "11973360003055e9177b38"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/11973360003055e9177b38",
+      "name": "BEIN SPORTS HABER |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1197336000.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "2806079612d7dc0e47a926"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/2806079612d7dc0e47a926",
+      "name": "BEIN SPORTS HABER |H",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "398999553310ffc0558467"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/398999553310ffc0558467",
+      "name": "BEIN SPORTS HABER HD |D",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=3989995533.png"
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "1646632825716e0af473ba"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/1646632825716e0af473ba",
+      "name": "BEIN SPORTS HABER RAW |D",
+      "group": "Turkey",
+      "logo": ""
+    },
+    {
+      "type": "iptv",
+      "ids": {
+        "id": "12215870672201e11b391e"
+      },
+      "url": "https://huhu.to/huhu-iptv/play/12215870672201e11b391e",
+      "name": "BEIN SPORTS MAX 1 |E",
+      "group": "Turkey",
+      "logo": "https://logo.huhu.to/logo?c=1221587067.png"
+    }
+  ]
+}

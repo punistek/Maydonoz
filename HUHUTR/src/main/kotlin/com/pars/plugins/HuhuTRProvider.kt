@@ -3,72 +3,98 @@ package com.pars.plugins
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.ExtractorLinkType
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.newExtractorLink
 
-class HuhuTRProvider : MainAPI() {
+class HuhuTRProvider(
+    private val snapshotJson: String? = null,
+) : MainAPI() {
+
     override var mainUrl = "https://huhu.to"
     override var name = "HUHU Türkiye"
-    override val supportedTypes = setOf(TvType.Live)
     override var lang = "tr"
+    override val supportedTypes = setOf(TvType.Live)
     override val hasMainPage = true
     override val hasQuickSearch = true
 
     private val mapper = ObjectMapper()
 
-    private val requestHeaders = mapOf(
-        "Accept" to "*/*",
-        "Content-Type" to "application/json; charset=utf-8",
-        "Origin" to mainUrl,
-        "Referer" to "$mainUrl/live",
-        "User-Agent" to USER_AGENT,
+    private data class Channel(
+        val id: String,
+        val url: String,
+        val name: String,
+        val logo: String?,
+    )
+
+    private data class CatalogPage(
+        val items: List<Channel>,
+        val nextCursor: Int?,
     )
 
     override val mainPage = mainPageOf(
         "turkey" to "Türkiye Kanalları"
     )
 
-    private data class HuhuChannel(
-        val id: String,
-        val name: String,
-        val poster: String? = null,
+    private fun headers(referer: String = "$mainUrl/live") = mapOf(
+        "Accept" to "*/*",
+        "Accept-Language" to "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Content-Type" to "application/json; charset=utf-8",
+        "Origin" to mainUrl,
+        "Referer" to referer,
+        "User-Agent" to USER_AGENT,
     )
 
     override suspend fun getMainPage(
         page: Int,
         request: MainPageRequest,
     ): HomePageResponse {
-        // HUHU'nun Türkiye kataloğu. Başka ülke/grup istenmez.
-        val channels = fetchTurkeyCatalog(search = "")
-        val results = channels.map { channel ->
+        val catalog = runCatching { fetchCatalogPage(page) }
+            .getOrElse {
+                // Ağ/katalog geçici bozulursa ZIP içindeki gerçek 300 kanallık
+                // 19.09.2026 Turkey response'u ilk sayfa için yedek olarak kullanılır.
+                if (page == 1) parseCatalog(snapshotJson.orEmpty())
+                else CatalogPage(emptyList(), null)
+            }
+
+        val results = catalog.items.map { channel ->
             newLiveSearchResponse(
                 channel.name,
                 "$mainUrl/watch?live=${channel.id}",
                 TvType.Live,
                 fix = false,
             ) {
-                posterUrl = channel.poster
-                lang = "tr"
+                posterUrl = channel.logo
             }
         }
-        return newHomePageResponse(request.name, results)
+
+        return newHomePageResponse(
+            request.name,
+            results,
+            hasNext = catalog.nextCursor != null,
+        )
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val clean = query.trim()
-        if (clean.isEmpty()) return emptyList()
+        val q = query.trim()
+        if (q.isEmpty()) return emptyList()
 
-        // Arama da yalnız Turkey filtresiyle yapılır.
-        return fetchTurkeyCatalog(search = clean).map { channel ->
+        val page = runCatching { requestCatalog(cursor = null, search = q) }
+            .getOrElse {
+                val local = parseCatalog(snapshotJson.orEmpty()).items
+                    .filter { it.name.contains(q, ignoreCase = true) }
+                CatalogPage(local, null)
+            }
+
+        return page.items.map { channel ->
             newLiveSearchResponse(
                 channel.name,
                 "$mainUrl/watch?live=${channel.id}",
                 TvType.Live,
                 fix = false,
             ) {
-                posterUrl = channel.poster
-                lang = "tr"
+                posterUrl = channel.logo
             }
         }
     }
@@ -77,21 +103,20 @@ class HuhuTRProvider : MainAPI() {
         search(query)
 
     override suspend fun load(url: String): LoadResponse {
-        val id = extractChannelId(url)
-            ?: throw ErrorLoadingException("HUHU kanal kimliği bulunamadı")
+        val id = extractId(url)
+            ?: throw ErrorLoadingException("HUHU kanal ID bulunamadı")
 
-        val channel = fetchTurkeyCatalog(search = "")
+        val cached = parseCatalog(snapshotJson.orEmpty()).items
             .firstOrNull { it.id == id }
 
-        val title = channel?.name ?: "HUHU Canlı TV"
+        val title = cached?.name ?: "HUHU Canlı TV"
 
         return newLiveStreamLoadResponse(
-            name = title,
-            url = "$mainUrl/watch?live=$id",
-            dataUrl = id,
+            title,
+            "$mainUrl/watch?live=$id",
+            id,
         ) {
-            posterUrl = channel?.poster
-            plot = "HUHU Türkiye canlı yayını"
+            posterUrl = cached?.logo
         }
     }
 
@@ -99,12 +124,14 @@ class HuhuTRProvider : MainAPI() {
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
-        callback: (com.lagradost.cloudstream3.utils.ExtractorLink) -> Unit,
+        callback: (ExtractorLink) -> Unit,
     ): Boolean {
-        val id = extractChannelId(data) ?: data.trim()
-        if (id.isEmpty()) return false
+        val id = extractId(data)
+            ?: throw ErrorLoadingException("HUHU kanal ID bulunamadı")
 
         val watchUrl = "$mainUrl/watch?live=$id"
+
+        // DevTools'tan alınan gerçek HUHU resolver payload'u.
         val payload = mapOf(
             "language" to "de",
             "region" to "DE",
@@ -113,17 +140,11 @@ class HuhuTRProvider : MainAPI() {
 
         val response = app.post(
             "$mainUrl/mediaurl-resolve.json",
-            headers = requestHeaders + ("Referer" to watchUrl),
+            headers = headers(watchUrl),
             json = payload,
         )
 
-        if (!response.isSuccessful) {
-            throw ErrorLoadingException(
-                "HUHU resolver HTTP ${response.code}"
-            )
-        }
-
-        val streamUrl = extractResolvedStream(response.text)
+        val streamUrl = findStreamUrl(response.text)
             ?: throw ErrorLoadingException("HUHU HLS adresi çözülemedi")
 
         callback(
@@ -147,7 +168,30 @@ class HuhuTRProvider : MainAPI() {
         return true
     }
 
-    private suspend fun fetchTurkeyCatalog(search: String): List<HuhuChannel> {
+    /**
+     * HUHU response ilk sayfada nextCursor=300 döndürüyor.
+     * CloudStream page=1,2,3... istediği için cursor zincirini HUHU'nun
+     * kendi nextCursor değeriyle takip ediyoruz; 300 varsayımı yapmıyoruz.
+     */
+    private suspend fun fetchCatalogPage(page: Int): CatalogPage {
+        if (page <= 1) return requestCatalog(cursor = null, search = "")
+
+        var cursor: Int? = null
+        var current = 1
+
+        while (current < page) {
+            val previous = requestCatalog(cursor = cursor, search = "")
+            cursor = previous.nextCursor ?: return CatalogPage(emptyList(), null)
+            current++
+        }
+
+        return requestCatalog(cursor = cursor, search = "")
+    }
+
+    private suspend fun requestCatalog(
+        cursor: Int?,
+        search: String,
+    ): CatalogPage {
         val payload = mapOf(
             "language" to "de",
             "region" to "DE",
@@ -157,199 +201,125 @@ class HuhuTRProvider : MainAPI() {
             "search" to search,
             "sort" to "trending-region",
             "filter" to mapOf("group" to "Turkey"),
-            "cursor" to null,
+            "cursor" to cursor,
         )
 
         val response = app.post(
             "$mainUrl/mediaurl-catalog.json",
-            headers = requestHeaders,
+            headers = headers(),
             json = payload,
         )
 
-        if (!response.isSuccessful) {
-            throw ErrorLoadingException(
-                "HUHU katalog HTTP ${response.code}"
-            )
+        val parsed = parseCatalog(response.text)
+        if (parsed.items.isEmpty() && response.text.isBlank()) {
+            throw ErrorLoadingException("HUHU katalog cevabı boş")
         }
-
-        return parseCatalog(response.text)
+        return parsed
     }
 
     /**
-     * HUHU katalog JSON'u sürüm değiştirirse tek bir sabit JSON path'e
-     * bağımlı kalmamak için nesneleri dolaşır. Yalnız geçerli kanal kimliği
-     * + kanal adı bulunan kayıtlar kabul edilir.
+     * Artık tahmini alan araması yok.
+     * Kullanıcının verdiği gerçek response şeması:
+     * items[].ids.id, items[].url, items[].name, items[].group, items[].logo
+     * ve root.nextCursor.
      */
-    private fun parseCatalog(raw: String): List<HuhuChannel> {
-        val root = runCatching { mapper.readTree(raw) }.getOrNull()
-            ?: return emptyList()
+    private fun parseCatalog(raw: String): CatalogPage {
+        if (raw.isBlank()) return CatalogPage(emptyList(), null)
 
-        val result = LinkedHashMap<String, HuhuChannel>()
+        val root = mapper.readTree(raw)
+        val nextCursor = root.get("nextCursor")
+            ?.takeUnless { it.isNull }
+            ?.asInt()
+
+        val itemsNode = root.get("items")
+        if (itemsNode == null || !itemsNode.isArray) {
+            return CatalogPage(emptyList(), nextCursor)
+        }
+
+        val channels = itemsNode.mapNotNull { item ->
+            if (item.get("group")?.asText() != "Turkey") return@mapNotNull null
+            if (item.get("type")?.asText() != "iptv") return@mapNotNull null
+
+            val id = item.get("ids")?.get("id")?.asText()?.trim().orEmpty()
+            val channelName = item.get("name")?.asText()?.trim().orEmpty()
+            val playUrl = item.get("url")?.asText()?.trim().orEmpty()
+            val logo = item.get("logo")?.asText()?.trim()
+                ?.takeIf { it.startsWith("http") }
+
+            if (id.isBlank() || channelName.isBlank()) return@mapNotNull null
+
+            Channel(
+                id = id,
+                url = playUrl.ifBlank { "$mainUrl/huhu-iptv/play/$id" },
+                name = channelName,
+                logo = logo,
+            )
+        }
+
+        return CatalogPage(
+            items = channels.distinctBy { it.id },
+            nextCursor = nextCursor,
+        )
+    }
+
+    private fun extractId(value: String): String? {
+        Regex("""[?&]live=([A-Za-z0-9_-]+)""")
+            .find(value)?.groupValues?.getOrNull(1)?.let { return it }
+
+        Regex("""huhu-iptv/play/([A-Za-z0-9_-]+)""")
+            .find(value)?.groupValues?.getOrNull(1)?.let { return it }
+
+        return value.trim().takeIf {
+            it.length >= 8 && it.matches(Regex("""[A-Za-z0-9_-]+"""))
+        }
+    }
+
+    /**
+     * Resolver response şemasını kullanıcı henüz ayrı Response olarak
+     * paylaşmadığı için alan adı uydurmuyoruz. JSON içindeki bütün string
+     * değerlerden gerçek .m3u8 URL'sini seçiyoruz.
+     */
+    private fun findStreamUrl(raw: String): String? {
+        val root: JsonNode = runCatching { mapper.readTree(raw) }.getOrNull()
+            ?: return regexM3u8(raw)
+
+        var result: String? = null
 
         fun walk(node: JsonNode) {
+            if (result != null) return
+
             when {
-                node.isObject -> {
-                    val id = firstText(
-                        node,
-                        "id",
-                        "channelId",
-                        "channel_id",
-                        "mediaId",
-                        "media_id",
-                    )?.let(::normalizeId)
-
-                    val title = firstText(
-                        node,
-                        "name",
-                        "title",
-                        "channelName",
-                        "channel_name",
-                    )?.trim()
-
-                    val poster = firstText(
-                        node,
-                        "poster",
-                        "posterUrl",
-                        "poster_url",
-                        "logo",
-                        "logoUrl",
-                        "logo_url",
-                        "image",
-                    )?.trim()?.takeIf { it.startsWith("http") }
-
-                    if (!id.isNullOrBlank() && !title.isNullOrBlank()) {
-                        result.putIfAbsent(
-                            id,
-                            HuhuChannel(id = id, name = title, poster = poster)
-                        )
-                    }
-
-                    val fields = node.fields()
-                    while (fields.hasNext()) {
-                        walk(fields.next().value)
+                node.isTextual -> {
+                    val value = node.asText().trim()
+                    if (value.startsWith("http") &&
+                        value.contains(".m3u8", ignoreCase = true)
+                    ) {
+                        result = value
                     }
                 }
 
                 node.isArray -> node.forEach(::walk)
+
+                node.isObject -> {
+                    val fields = node.fields()
+                    while (fields.hasNext() && result == null) {
+                        walk(fields.next().value)
+                    }
+                }
             }
         }
 
         walk(root)
-
-        // API şekli değişse bile play/<id> bulunan kayıtları son çare yakala.
-        if (result.isEmpty()) {
-            val playRegex = Regex(
-                """huhu-iptv/play/([A-Za-z0-9_-]+)"""
-            )
-            playRegex.findAll(raw).forEachIndexed { index, match ->
-                val id = match.groupValues[1]
-                result.putIfAbsent(
-                    id,
-                    HuhuChannel(id, "HUHU Kanal ${index + 1}")
-                )
-            }
-        }
-
-        return result.values.toList()
+        return result ?: regexM3u8(raw)
     }
 
-    private fun firstText(node: JsonNode, vararg keys: String): String? {
-        for (key in keys) {
-            val value = node.get(key) ?: continue
-            if (value.isTextual || value.isNumber) {
-                val text = value.asText().trim()
-                if (text.isNotEmpty() && text != "null") return text
-            }
-        }
-        return null
-    }
-
-    private fun normalizeId(raw: String): String? {
-        val value = raw.trim()
-        if (value.isEmpty()) return null
-
-        Regex("""huhu-iptv/play/([A-Za-z0-9_-]+)""")
-            .find(value)
-            ?.groupValues
-            ?.getOrNull(1)
-            ?.let { return it }
-
-        Regex("""[?&]live=([A-Za-z0-9_-]+)""")
-            .find(value)
-            ?.groupValues
-            ?.getOrNull(1)
-            ?.let { return it }
-
-        // HUHU örneğindeki kimlikler hex-benzeri uzun tokenlardır.
-        return value.takeIf {
-            it.length >= 8 &&
-                it.matches(Regex("""[A-Za-z0-9_-]+"""))
-        }
-    }
-
-    private fun extractChannelId(value: String): String? {
-        Regex("""[?&]live=([A-Za-z0-9_-]+)""")
-            .find(value)
-            ?.groupValues
-            ?.getOrNull(1)
-            ?.let { return it }
-
-        Regex("""huhu-iptv/play/([A-Za-z0-9_-]+)""")
-            .find(value)
-            ?.groupValues
-            ?.getOrNull(1)
-            ?.let { return it }
-
-        return value.trim().takeIf {
-            it.length >= 8 &&
-                it.matches(Regex("""[A-Za-z0-9_-]+"""))
-        }
-    }
-
-    private fun extractResolvedStream(raw: String): String? {
-        val root = runCatching { mapper.readTree(raw) }.getOrNull()
-
-        if (root != null) {
-            val urls = ArrayList<String>()
-
-            fun walk(node: JsonNode) {
-                when {
-                    node.isTextual -> {
-                        val value = node.asText().trim()
-                        if (value.startsWith("http")) urls += value
-                    }
-
-                    node.isObject -> {
-                        val fields = node.fields()
-                        while (fields.hasNext()) {
-                            walk(fields.next().value)
-                        }
-                    }
-
-                    node.isArray -> node.forEach(::walk)
-                }
-            }
-
-            walk(root)
-
-            urls.firstOrNull {
-                it.contains(".m3u8", ignoreCase = true)
-            }?.let { return it }
-
-            urls.firstOrNull {
-                it.startsWith("http") &&
-                    (it.contains("/hls/", ignoreCase = true) ||
-                     it.contains("sunshine", ignoreCase = true))
-            }?.let { return it }
-        }
-
-        // JSON içinde escape edilmiş URL ihtimali.
-        val cleaned = raw
+    private fun regexM3u8(raw: String): String? {
+        val clean = raw
             .replace("\\/", "/")
             .replace("\\u0026", "&")
 
-        return Regex("""https?://[^\s"'\\]+?\.m3u8(?:\?[^\s"'\\]*)?""")
-            .find(cleaned)
+        return Regex("""https?://[^\s"'\\]+\.m3u8(?:\?[^\s"'\\]*)?""")
+            .find(clean)
             ?.value
     }
 
