@@ -1,7 +1,10 @@
 package com.pars.klubnichka
 
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.utils.*
+import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.ExtractorLinkType
+import com.lagradost.cloudstream3.utils.Qualities
+import com.lagradost.cloudstream3.utils.newExtractorLink
 import org.jsoup.Jsoup
 
 class KlubnichkaProvider : MainAPI() {
@@ -24,14 +27,22 @@ class KlubnichkaProvider : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val doc = app.get(request.data, headers = headers).document
-        val items = doc.select("a.channel-item").mapNotNull { element ->
+
+        val items = doc.select("a.channel-card").mapNotNull { element ->
             val href = element.attr("href").trim()
-            val title = element.selectFirst(".channel-name")?.text()?.trim().orEmpty()
-            val poster = element.selectFirst("img.channel-logo")?.attr("src")?.trim().orEmpty()
+            val title = element.selectFirst(".channel-card-title")
+                ?.text()
+                ?.trim()
+                .orEmpty()
+                .ifBlank {
+                    element.selectFirst("img[alt]")?.attr("alt")?.trim().orEmpty()
+                }
+            val poster = element.selectFirst("img[src]")?.attr("src")?.trim().orEmpty()
+
             if (href.isBlank() || title.isBlank()) return@mapNotNull null
 
             newMovieSearchResponse(title, fixUrl(href), TvType.Live) {
-                if (poster.isNotBlank()) this.posterUrl = fixUrl(poster)
+                if (poster.isNotBlank()) posterUrl = fixUrl(poster)
             }
         }.distinctBy { it.url }
 
@@ -41,27 +52,49 @@ class KlubnichkaProvider : MainAPI() {
     override suspend fun search(query: String): List<SearchResponse> {
         val q = query.trim().lowercase()
         if (q.isBlank()) return emptyList()
+
         val doc = app.get(mainUrl, headers = headers).document
-        return doc.select("a.channel-item").mapNotNull { element ->
+
+        return doc.select("a.channel-card").mapNotNull { element ->
             val href = element.attr("href").trim()
-            val title = element.selectFirst(".channel-name")?.text()?.trim().orEmpty()
-            val poster = element.selectFirst("img.channel-logo")?.attr("src")?.trim().orEmpty()
-            if (href.isBlank() || title.isBlank() || !title.lowercase().contains(q)) return@mapNotNull null
+            val title = element.selectFirst(".channel-card-title")
+                ?.text()
+                ?.trim()
+                .orEmpty()
+                .ifBlank {
+                    element.selectFirst("img[alt]")?.attr("alt")?.trim().orEmpty()
+                }
+            val poster = element.selectFirst("img[src]")?.attr("src")?.trim().orEmpty()
+
+            if (
+                href.isBlank() ||
+                title.isBlank() ||
+                !title.lowercase().contains(q)
+            ) return@mapNotNull null
+
             newMovieSearchResponse(title, fixUrl(href), TvType.Live) {
-                if (poster.isNotBlank()) this.posterUrl = fixUrl(poster)
+                if (poster.isNotBlank()) posterUrl = fixUrl(poster)
             }
         }.distinctBy { it.url }
     }
 
     override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url, headers = headers).document
+
         val title = doc.selectFirst("h1")?.text()?.trim()
             ?.takeIf { it.isNotBlank() }
             ?: doc.selectFirst("title")?.text()?.substringBefore(" онлайн")?.trim()
             ?: "Canlı Yayın"
-        val poster = doc.selectFirst(
-            ".channel-item[href='${runCatching { java.net.URI(url).path }.getOrNull()}'] img.channel-logo"
-        )?.attr("src")?.trim().orEmpty()
+
+        val slug = runCatching {
+            java.net.URI(url).path.trim('/').substringBefore("/")
+        }.getOrNull().orEmpty()
+
+        val poster = doc.selectFirst("meta[property=og:image]")?.attr("content")?.trim()
+            .orEmpty()
+            .ifBlank {
+                if (slug.isNotBlank()) "$mainUrl/images/$slug.png" else ""
+            }
 
         return newMovieLoadResponse(title, url, TvType.Live, url) {
             if (poster.isNotBlank()) posterUrl = fixUrl(poster)
@@ -105,7 +138,7 @@ class KlubnichkaProvider : MainAPI() {
         if (candidates.isEmpty()) return false
 
         candidates.forEach { streamUrl ->
-            callback.invoke(
+            callback(
                 newExtractorLink(
                     source = name,
                     name = "$name • Canlı",
@@ -137,9 +170,11 @@ class KlubnichkaProvider : MainAPI() {
         )
 
         val out = LinkedHashSet<String>()
+
         regexes.forEach { regex ->
             regex.findAll(decoded).forEach { match ->
                 val raw = (match.groups[1]?.value ?: match.value).trim()
+
                 val fixed = when {
                     raw.startsWith("http://") || raw.startsWith("https://") -> raw
                     raw.startsWith("//") -> "https:$raw"
@@ -151,9 +186,11 @@ class KlubnichkaProvider : MainAPI() {
                         java.net.URI(baseUrl).resolve(raw).toString()
                     }.getOrDefault(raw)
                 }
+
                 if (fixed.startsWith("http")) out.add(fixed)
             }
         }
+
         return out.toList()
     }
 }
