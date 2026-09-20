@@ -117,162 +117,72 @@ class KlubnichkaProvider : MainAPI() {
         dbg("DATA_URL=$data")
 
         return try {
-            // AŞAMA 1: Kanal sayfası
-            dbg("STEP1_CHANNEL_REQUEST=$data")
+            // 1) Kanal sayfası normal HTTP ile erişilebilir.
             val channelResponse = app.get(data, headers = headers)
             val channelHtml = channelResponse.text
-            dbg("STEP1_CHANNEL_BODY_LENGTH=${channelHtml.length}")
-
             val channelDoc = Jsoup.parse(channelHtml, data)
 
-            val channelIframes = channelDoc.select("iframe[src]")
-            dbg("STEP1_IFRAME_COUNT=${channelIframes.size}")
-
-            channelIframes.forEachIndexed { index, element ->
-                dbg("STEP1_IFRAME[$index]=${element.absUrl("src")}")
-            }
-
-            val iframeUrl = channelIframes.firstOrNull()
+            val iframeUrl = channelDoc.selectFirst("iframe[src]")
                 ?.absUrl("src")
                 ?.trim()
                 .orEmpty()
 
-            dbg("STEP1_SELECTED_IFRAME=$iframeUrl")
+            dbg("CHANNEL_HTTP=${channelResponse.code}")
+            dbg("IFRAME_URL=$iframeUrl")
 
             if (iframeUrl.isBlank()) {
                 dbg("FAIL=CHANNEL_IFRAME_EMPTY")
-                dbg("CHANNEL_HTML_HEAD=${channelHtml.take(800).replace("\n", " ")}")
                 return false
             }
 
-            // AŞAMA 2: /iframes/<kanal>.php
-            dbg("STEP2_IFRAME_REQUEST=$iframeUrl")
-            val iframeResponse = app.get(
-                iframeUrl,
-                headers = headers + mapOf("Referer" to data)
-            )
-            val iframeHtml = iframeResponse.text
-            dbg("STEP2_IFRAME_BODY_LENGTH=${iframeHtml.length}")
+            /*
+             * Resolver Lab kanıtı:
+             *   normal HTTP -> /iframes/<slug>.php = 403
+             *   gerçek Chrome -> iframe çalışıyor
+             *   Chrome network -> /player/playerjs.php?ch=N = 200
+             *
+             * Bu nedenle burada 403 veren iframe'i tekrar app.get() ile zorlamıyoruz.
+             *
+             * ÖNEMLİ:
+             * Kanal slug -> ch numarası kanal HTML'inde bulunmuyor.
+             * Pinko için ch=22 görülmesi yalnız Pinko'yu kanıtlar; diğer kanallara
+             * aynı/hesaplanmış numarayı vermek yanlış olur.
+             *
+             * PARS runtime bu marker'ı görünce mevcut browser-runtime çözümüne
+             * handoff etmelidir. Böylece gerçek Chrome/WebView network'ünden
+             * playerjs.php ve dinamik m3u8 yakalanır.
+             */
+            dbg("BROWSER_REQUIRED=TRUE")
+            dbg("BROWSER_TARGET=$data")
+            dbg("BROWSER_IFRAME=$iframeUrl")
+            dbg("FAIL=STATIC_HTTP_BLOCKED_BY_IFRAME_403")
 
-            val iframeDoc = Jsoup.parse(iframeHtml, iframeUrl)
-            val nestedIframes = iframeDoc.select("iframe[src]")
-            dbg("STEP2_NESTED_IFRAME_COUNT=${nestedIframes.size}")
-
-            nestedIframes.forEachIndexed { index, element ->
-                dbg("STEP2_NESTED_IFRAME[$index]=${element.absUrl("src")}")
-            }
-
-            val playerUrl = nestedIframes.firstOrNull()
-                ?.absUrl("src")
-                ?.trim()
-                .orEmpty()
-
-            dbg("STEP2_PLAYER_URL=$playerUrl")
-
-            if (playerUrl.isBlank()) {
-                dbg("FAIL=PLAYER_IFRAME_EMPTY")
-                dbg("IFRAME_HTML_HEAD=${iframeHtml.take(1200).replace("\n", " ")}")
-                return false
-            }
-
-            // AŞAMA 3: /player/playerjs.php?ch=N
-            dbg("STEP3_PLAYER_REQUEST=$playerUrl")
-            val playerResponse = app.get(
-                playerUrl,
-                headers = headers + mapOf("Referer" to iframeUrl)
-            )
-            val playerHtml = playerResponse.text
-            dbg("STEP3_PLAYER_BODY_LENGTH=${playerHtml.length}")
-            dbg("STEP3_HAS_GENERATED_FILE=${playerHtml.contains("generatedFile", ignoreCase = true)}")
-            dbg("STEP3_HAS_M3U8=${playerHtml.contains(".m3u8", ignoreCase = true)}")
-
-            val generatedMatch = Regex(
-                """generatedFile\s*=\s*["']([^"']+)["']""",
-                setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
-            ).find(playerHtml)
-
-            val generatedFile = generatedMatch
-                ?.groups
-                ?.get(1)
-                ?.value
-                ?.trim()
-                .orEmpty()
-
-            dbg("STEP3_GENERATED_FILE=$generatedFile")
-
-            if (generatedFile.isBlank()) {
-                dbg("FAIL=GENERATED_FILE_EMPTY")
-                dbg("PLAYER_HTML_HEAD=${playerHtml.take(1800).replace("\n", " ")}")
-
-                // Teşhis için HTML'de görünen bütün m3u8'leri de yaz.
-                val rawM3u8 = Regex(
-                    """https?://[^\s"'<>]+?\.m3u8(?:\?[^\s"'<>]*)?""",
-                    RegexOption.IGNORE_CASE
-                ).findAll(playerHtml)
-                    .map { it.value }
-                    .distinct()
-                    .toList()
-
-                dbg("PLAYER_HTML_M3U8_COUNT=${rawM3u8.size}")
-                rawM3u8.forEachIndexed { index, url ->
-                    dbg("PLAYER_HTML_M3U8[$index]=$url")
+            // PARS tarafındaki browser handoff marker'ı.
+            callback(
+                newExtractorLink(
+                    source = name,
+                    name = "$name • Browser Runtime",
+                    url = data,
+                    type = ExtractorLinkType.M3U8
+                ) {
+                    this.referer = "$mainUrl/"
+                    this.quality = Qualities.Unknown.value
+                    this.headers = mapOf(
+                        "X-PARS-WEBVIEW" to "1",
+                        "X-PARS-WEBVIEW-TARGET" to data,
+                        "Origin" to mainUrl,
+                        "Referer" to "$mainUrl/",
+                        "User-Agent" to headers.getValue("User-Agent")
+                    )
                 }
+            )
 
-                return false
-            }
-
-            // AŞAMA 4: generatedFile içinden gerçek HLS adresleri
-            val streamUrls = Regex(
-                """https?://[^\s"']+?\.m3u8(?:\?[^\s"']*)?""",
-                RegexOption.IGNORE_CASE
-            ).findAll(generatedFile)
-                .map { it.value.trim() }
-                .distinct()
-                .toList()
-
-            dbg("STEP4_HLS_COUNT=${streamUrls.size}")
-            streamUrls.forEachIndexed { index, url ->
-                dbg("STEP4_HLS[$index]=$url")
-            }
-
-            if (streamUrls.isEmpty()) {
-                dbg("FAIL=NO_HLS_IN_GENERATED_FILE")
-                return false
-            }
-
-            // AŞAMA 5: CloudStream callback
-            var emitted = 0
-
-            streamUrls.forEachIndexed { index, streamUrl ->
-                dbg("STEP5_EMIT_BEGIN[$index]=$streamUrl")
-
-                callback(
-                    newExtractorLink(
-                        source = name,
-                        name = if (index == 0) "$name • Canlı" else "$name • Yedek ${index + 1}",
-                        url = streamUrl,
-                        type = ExtractorLinkType.M3U8
-                    ) {
-                        this.referer = "$mainUrl/"
-                        this.quality = Qualities.Unknown.value
-                        this.headers = mapOf(
-                            "Origin" to mainUrl,
-                            "Referer" to "$mainUrl/",
-                            "User-Agent" to headers.getValue("User-Agent")
-                        )
-                    }
-                )
-
-                emitted++
-                dbg("STEP5_EMIT_OK[$index]")
-            }
-
-            dbg("DONE=TRUE EMITTED=$emitted")
-            emitted > 0
+            dbg("DONE=HANDOFF_EMITTED")
+            true
         } catch (t: Throwable) {
             dbg("EXCEPTION_CLASS=${t.javaClass.name}")
             dbg("EXCEPTION_MESSAGE=${t.message}")
-            dbg("EXCEPTION_STACK=${t.stackTraceToString().replace("\n", " | ")}")
+            dbg("EXCEPTION_STACK=${t.stackTrace.joinToString(" | ")}")
             false
         }
     }
