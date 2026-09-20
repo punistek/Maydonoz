@@ -170,9 +170,10 @@ class KlubnichkaProvider : MainAPI() {
                     this.headers = mapOf(
                         "X-PARS-WEBVIEW" to "1",
                         "X-PARS-WEBVIEW-TARGET" to data,
+                        "X-PARS-BROWSER-REQUIRED" to "1",
                         "Origin" to mainUrl,
                         "Referer" to "$mainUrl/",
-                        "User-Agent" to headers.getValue("User-Agent")
+                        "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
                     )
                 }
             )
