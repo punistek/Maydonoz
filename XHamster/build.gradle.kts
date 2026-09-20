@@ -1,7 +1,7 @@
 version = 1
 
 cloudstream {
-    description = "XHamster +18 VPN ile açın."
+    description = "PARS Adult +18 "
     authors = listOf("PARS")
     status = 1
     tvTypes = listOf("Movie")
