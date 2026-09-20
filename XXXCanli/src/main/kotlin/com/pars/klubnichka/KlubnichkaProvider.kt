@@ -1,8 +1,7 @@
 package com.pars.klubnichka
 
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.Qualities
+import com.lagradost.cloudstream3.utils.*
 import org.jsoup.Jsoup
 
 class KlubnichkaProvider : MainAPI() {
@@ -60,9 +59,9 @@ class KlubnichkaProvider : MainAPI() {
             ?.takeIf { it.isNotBlank() }
             ?: doc.selectFirst("title")?.text()?.substringBefore(" онлайн")?.trim()
             ?: "Canlı Yayın"
-        val poster = doc.selectFirst(".channel-item[href='${runCatching { java.net.URI(url).path }.getOrNull()}'] img.channel-logo")
-            ?.attr("src")?.trim()
-            .orEmpty()
+        val poster = doc.selectFirst(
+            ".channel-item[href='${runCatching { java.net.URI(url).path }.getOrNull()}'] img.channel-logo"
+        )?.attr("src")?.trim().orEmpty()
 
         return newMovieLoadResponse(title, url, TvType.Live, url) {
             if (poster.isNotBlank()) posterUrl = fixUrl(poster)
@@ -89,7 +88,6 @@ class KlubnichkaProvider : MainAPI() {
         val candidates = LinkedHashSet<String>()
         extractM3u8Candidates(iframeBody, iframe).forEach(candidates::add)
 
-        // Iframe başka bir iframe/player sayfasına yönlendiriyorsa bir katman daha takip et.
         val iframeDoc = Jsoup.parse(iframeBody, iframe)
         iframeDoc.select("iframe[src]").forEach { nested ->
             val nestedUrl = nested.absUrl("src").trim()
@@ -107,20 +105,21 @@ class KlubnichkaProvider : MainAPI() {
         if (candidates.isEmpty()) return false
 
         candidates.forEach { streamUrl ->
-            callback(
-                ExtractorLink(
+            callback.invoke(
+                newExtractorLink(
                     source = name,
                     name = "$name • Canlı",
                     url = streamUrl,
-                    referer = "$mainUrl/",
-                    quality = Qualities.Unknown.value,
-                    isM3u8 = true,
-                    headers = mapOf(
+                    type = ExtractorLinkType.M3U8
+                ) {
+                    this.referer = "$mainUrl/"
+                    this.quality = Qualities.Unknown.value
+                    this.headers = mapOf(
                         "Origin" to mainUrl,
                         "Referer" to "$mainUrl/",
                         "User-Agent" to headers.getValue("User-Agent")
                     )
-                )
+                }
             )
         }
         return true
@@ -140,7 +139,7 @@ class KlubnichkaProvider : MainAPI() {
         val out = LinkedHashSet<String>()
         regexes.forEach { regex ->
             regex.findAll(decoded).forEach { match ->
-                val raw = (match.groups.getOrNull(1)?.value ?: match.value).trim()
+                val raw = (match.groups[1]?.value ?: match.value).trim()
                 val fixed = when {
                     raw.startsWith("http://") || raw.startsWith("https://") -> raw
                     raw.startsWith("//") -> "https:$raw"
@@ -148,7 +147,9 @@ class KlubnichkaProvider : MainAPI() {
                         val uri = java.net.URI(baseUrl)
                         "${uri.scheme}://${uri.host}$raw"
                     }
-                    else -> runCatching { java.net.URI(baseUrl).resolve(raw).toString() }.getOrDefault(raw)
+                    else -> runCatching {
+                        java.net.URI(baseUrl).resolve(raw).toString()
+                    }.getOrDefault(raw)
                 }
                 if (fixed.startsWith("http")) out.add(fixed)
             }
