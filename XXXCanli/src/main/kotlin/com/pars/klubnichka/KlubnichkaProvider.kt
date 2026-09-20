@@ -107,41 +107,58 @@ class KlubnichkaProvider : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val page = app.get(data, headers = headers).text
-        val pageDoc = Jsoup.parse(page, data)
-        val iframe = pageDoc.selectFirst("iframe[src]")?.absUrl("src")?.trim().orEmpty()
-        if (iframe.isBlank()) return false
+        // 1) Kanal sayfası -> /iframes/<kanal>.php
+        val channelDoc = app.get(data, headers = headers).document
+        val iframeUrl = channelDoc.selectFirst("iframe[src]")
+            ?.absUrl("src")
+            ?.trim()
+            .orEmpty()
 
-        val iframeResponse = app.get(
-            iframe,
+        if (iframeUrl.isBlank()) return false
+
+        // 2) /iframes/<kanal>.php -> /player/playerjs.php?ch=N
+        val iframeDoc = app.get(
+            iframeUrl,
             headers = headers + mapOf("Referer" to data)
-        )
-        val iframeBody = iframeResponse.text
+        ).document
 
-        val candidates = LinkedHashSet<String>()
-        extractM3u8Candidates(iframeBody, iframe).forEach(candidates::add)
+        val playerUrl = iframeDoc.selectFirst("iframe[src]")
+            ?.absUrl("src")
+            ?.trim()
+            .orEmpty()
 
-        val iframeDoc = Jsoup.parse(iframeBody, iframe)
-        iframeDoc.select("iframe[src]").forEach { nested ->
-            val nestedUrl = nested.absUrl("src").trim()
-            if (nestedUrl.isNotBlank()) {
-                runCatching {
-                    val nestedBody = app.get(
-                        nestedUrl,
-                        headers = headers + mapOf("Referer" to iframe)
-                    ).text
-                    extractM3u8Candidates(nestedBody, nestedUrl).forEach(candidates::add)
-                }
-            }
-        }
+        if (playerUrl.isBlank()) return false
 
-        if (candidates.isEmpty()) return false
+        // 3) playerjs.php cevabında generatedFile doğrudan tokenli HLS'leri veriyor.
+        val playerHtml = app.get(
+            playerUrl,
+            headers = headers + mapOf("Referer" to iframeUrl)
+        ).text
 
-        candidates.forEach { streamUrl ->
+        val generatedFile = Regex(
+            """var\s+generatedFile\s*=\s*["']([^"']+)["']""",
+            RegexOption.IGNORE_CASE
+        ).find(playerHtml)?.groups?.get(1)?.value.orEmpty()
+
+        if (generatedFile.isBlank()) return false
+
+        // Örnek:
+        // https://tvcdnpotok.com/6/index.m3u8?... or https://tvlife.live/6/index.m3u8?...
+        val streamUrls = Regex(
+            """https?://[^\s"']+?\.m3u8(?:\?[^\s"']*)?""",
+            RegexOption.IGNORE_CASE
+        ).findAll(generatedFile)
+            .map { it.value.trim() }
+            .distinct()
+            .toList()
+
+        if (streamUrls.isEmpty()) return false
+
+        streamUrls.forEachIndexed { index, streamUrl ->
             callback(
                 newExtractorLink(
                     source = name,
-                    name = "$name • Canlı",
+                    name = if (index == 0) "$name • Canlı" else "$name • Yedek ${index + 1}",
                     url = streamUrl,
                     type = ExtractorLinkType.M3U8
                 ) {
@@ -155,6 +172,7 @@ class KlubnichkaProvider : MainAPI() {
                 }
             )
         }
+
         return true
     }
 
