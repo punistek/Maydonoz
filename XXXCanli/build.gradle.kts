@@ -7,5 +7,4 @@ cloudstream {
     tvTypes = listOf("Live")
     language = "ru"
     iconUrl = "https://klubnichka.live/favicon.ico"
-    isAdult = true
 }
