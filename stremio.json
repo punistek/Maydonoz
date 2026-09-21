@@ -7,6 +7,10 @@
     {
       "name": "OpenSubtitles v3",
       "manifestUrl": "https://opensubtitles-v3.strem.io/manifest.json"
+    },
+    {
+      "name": "Showbox",
+      "manifestUrl": "https://showbox.codiv.dpdns.org/manifest.json"
     }
   ]
 }
