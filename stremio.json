@@ -1,0 +1,12 @@
+{
+  "addons": [
+    {
+      "name": "Cinemeta",
+      "manifestUrl": "https://v3-cinemeta.strem.io/manifest.json"
+    },
+    {
+      "name": "OpenSubtitles v3",
+      "manifestUrl": "https://opensubtitles-v3.strem.io/manifest.json"
+    }
+  ]
+}
