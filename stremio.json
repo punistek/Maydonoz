@@ -10,7 +10,7 @@
     },
     {
       "name": "Torrentio",
-      "manifestUrl": "https://torrentio.strem.fun/manifest.json"
+      "manifestUrl": "https://torrentio.strem.fun/language=turkish|limit=2|sizefilter=10GB/manifest.json"
     }
   ]
 }
