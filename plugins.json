@@ -1,0 +1,611 @@
+[
+    {
+        "iconUrl": "https://www.ardaspor30.top/dimg/55557ardafav.png",
+        "fileHash": "sha256-19f1df44ab12c23f04e793119af9f1ca76f3829e41121c183494a804a4e61f64",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 20291,
+        "status": 3,
+        "language": "tr",
+        "authors": [
+            
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 3,
+        "internalName": "Arda1Spor",
+        "description": "ArdaSpor ba\u011f\u0131ms\u0131z kaynak \u00b7 PARS",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/Arda1Spor.cs3",
+        "name": "Arda1Spor"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=belgeselx.com&sz=%size%",
+        "fileHash": "sha256-006550484bd4786ec4e7093e4bd0e9e6324cffedb30e9e9efc3bbb6858ac37e6",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 31580,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PUU",
+            "PARS"
+        ],
+        "tvTypes": [
+            "Documentary"
+        ],
+        "version": 17,
+        "internalName": "BelgeselX",
+        "description": "En yeni belgeseller, t\u00fcrk\u00e7e altyaz\u0131l\u0131 yada dublaj olarak 1080p kalitesinde HD belgesel izle.",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/BelgeselX.cs3",
+        "name": "BelgeselX"
+    },
+    {
+        "iconUrl": "https://dizimakinesi.org/storage/site-assets/01KW7CBANE0RQE6TZ420YQS4NW.png",
+        "fileHash": "sha256-966890fbe2e5e7d31c92485e0339605cb17ef04b9c3e735c37715f8f5af9d669",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 18536,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 1,
+        "internalName": "DiziMakinesi",
+        "description": "Dizi Makinesi - film ve dizi kayna\u011f\u0131",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/DiziMakinesi.cs3",
+        "name": "DiziMakinesi"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=dizipal2130.com&sz=%size%",
+        "fileHash": "sha256-620c67dd09c63ebe0d06779238c3e53228227a15c4bcd1134b63256ec883f765",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 40332,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 1,
+        "internalName": "Dizipal",
+        "description": "Dizipal - Film, Dizi, BluTV ve Netflix",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/Dizipal.cs3",
+        "name": "Dizipal"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=dizisol.com&sz=%size%",
+        "fileHash": "sha256-b05776e989d5ea8ea72900d61b59ed339778a212de0b1305242ffc29c7ac4c65",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 35282,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "TvSeries"
+        ],
+        "version": 1,
+        "internalName": "DiziSol",
+        "description": "DiziSol - Dizi API -> Resolve Stream -> HLS",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/DiziSol.cs3",
+        "name": "DiziSol"
+    },
+    {
+        "iconUrl": "https://cdn.diziyou.one/wp-content/uploads/2020/04/diziyou-favicon.png",
+        "fileHash": "sha256-17de29c24821881f11bf2d53f5b5b3c32eb5f415843c4a49bced843045ef9803",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 18130,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "TvSeries"
+        ],
+        "version": 25,
+        "internalName": "DiziYou",
+        "description": "Diziyou en kaliteli T\u00fcrk\u00e7e dublaj ve altyaz\u0131l\u0131 yabanc\u0131 dizi izleme sitesidir. G\u00fcncel ve efsanevi dizileri 1080p Full HD kalitede izlemek i\u00e7in hemen t\u0131kla!",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/DiziYou.cs3",
+        "name": "DiziYou"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=dmax.com.tr&sz=%size%",
+        "fileHash": "sha256-8cf0240f3674203f905ae8f428746c6ae09e5cc44199c8534c9fce81639cb64c",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 22762,
+        "status": 1,
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "TvSeries"
+        ],
+        "version": 1,
+        "internalName": "DMAX",
+        "description": "DMAX programlar\u0131 ve belgeselleri",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/DMAX.cs3",
+        "name": "DMAX"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=filmmakinesi.to&sz=%size%",
+        "fileHash": "sha256-117df5ddffbad974975079dc283bd971b97bccc6bfc514755972dc3a6958c73a",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 27197,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 2,
+        "internalName": "FilmMakinesi",
+        "description": "FilmMakinesi ",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/FilmMakinesi.cs3",
+        "name": "FilmMakinesi"
+    },
+    {
+        "iconUrl": "https://filmmodu.cc/favicon-192x192.png",
+        "fileHash": "sha256-e833f0a46b3f27aee2110acd8e5706bb02f8f29ad1a2d4f43e4c21717422fc6a",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 21652,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 1,
+        "internalName": "Filmmodu",
+        "description": "Filmmodu film kayna\u011f\u0131",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/Filmmodu.cs3",
+        "name": "Filmmodu"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=fullhdfilmizle.now&sz=%size%",
+        "fileHash": "sha256-07d1ef9cd5ea91be139fadafdb98713a375b772e2377b8d29a6b8945bf1d95a6",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 26873,
+        "status": 3,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 1,
+        "internalName": "FullHDFilmizle",
+        "description": "FullHDFilmizle provider",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/FullHDFilmizle.cs3",
+        "name": "FullHDFilmizle"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=fullhdfilmizlesene.now&sz=%size%",
+        "fileHash": "sha256-5553b994884c816910038e2040a611f420adf6f1e0d52a9a86cf0482ba3ff6c1",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 33824,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 2,
+        "internalName": "FullHDFilmizlesene",
+        "description": "FullHDFilmizlesene - SCX -> RapidVid -> HLS",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/FullHDFilmizlesene.cs3",
+        "name": "FullHDFilmizlesene"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=hdfilmcehennemi.com&sz=%size%",
+        "fileHash": "sha256-f626f37823d5c4551e4bf5894cc6984903c76e4438f5fed441d73e842a62ba45",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 32721,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PUU",
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 48,
+        "internalName": "HDFilmCehennemi",
+        "description": "T\u00fcrkiye'nin en h\u0131zl\u0131 hd film izleme sitesi",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/HDFilmCehennemi.cs3",
+        "name": "HDFilmCehennemi"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=huhu.to&sz=%size%",
+        "fileHash": "sha256-8370aad1241a49a070acad7f7c7bcfa752bd0dcbb1381b5de2fb4ae4dae130fb",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 16971,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 3,
+        "internalName": "HUHUTR",
+        "description": "HUHU T\u00fcrkiye canl\u0131 TV kanallar\u0131",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/HUHUTR.cs3",
+        "name": "HUHUTR"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=720izle.com&sz=%size%",
+        "fileHash": "sha256-4f5df35f10b9bc240d96d935441466a33a9de80e2af1c15cdc33034b46688e7f",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 23443,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 1,
+        "internalName": "Izle720",
+        "description": "720izle film kaynagindan",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/Izle720.cs3",
+        "name": "Izle720"
+    },
+    {
+        "iconUrl": "https://jetfilmizle.now/favicon.ico",
+        "fileHash": "sha256-ffd4471f3856b932979e47fdf11bc8539423823b4a5a6eee0b4242f5d212c298",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 59928,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 10,
+        "internalName": "JetFilmizle",
+        "description": "JetFilmizle V10 - JetGlobal 12 kaynak + YouTube source destegi",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/JetFilmizle.cs3",
+        "name": "JetFilmizle"
+    },
+    {
+        "iconUrl": "https://raw.githubusercontent.com/punistek/Maydonoz/main/assets/providers/SPOR2.png",
+        "fileHash": "sha256-581862297317864d695015b86f9fed5166161d3ac700e95c547ced7a1e0c26e8",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 26771,
+        "status": 3,
+        "language": "tr",
+        "authors": [
+            
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 1,
+        "internalName": "PARSSPOR1",
+        "description": "\ud83d\udfe2 PARS Ma\u00e7 Listesi + 7/24 TV \u00b7 PARS",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/PARSSPOR1.cs3",
+        "name": "PARSSPOR1"
+    },
+    {
+        "iconUrl": "https://raw.githubusercontent.com/punistek/Maydonoz/main/assets/providers/SelcukSports.png",
+        "fileHash": "sha256-e02dee8bb5bf9369888674c2b6daa8dc6425e0263eff1552eb5c898ee6143e67",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 52878,
+        "status": 3,
+        "language": "tr",
+        "authors": [
+            
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 7,
+        "internalName": "SelcukSports",
+        "description": "\ud83d\udfe2 TurkSpor kayna\u011f\u0131ndan \u00b7 PARS",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/SelcukSports.cs3",
+        "name": "SelcukSports"
+    },
+    {
+        "iconUrl": "https://mo.ciner.com.tr/assets/images/showtv-logo-400x400.png",
+        "fileHash": "sha256-d7ed8b5fa792fc3f9a9c2c1a609cd817e42a3370b1c03a01ce9a65face2d3e59",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 28195,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "TvSeries"
+        ],
+        "version": 1,
+        "internalName": "ShowTV",
+        "description": "Show TV dizilerini ve b\u00f6l\u00fcmlerini do\u011frudan ShowTV \u00fczerinden otomatik listeler.",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/ShowTV.cs3",
+        "name": "ShowTV"
+    },
+    {
+        "iconUrl": "https://www.sinefilmizlesen.cc/favicon.ico",
+        "fileHash": "sha256-2798ddd17f2dbcfe91cbccd2cee7471287806f4898b7eece9b639c05536ec920",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 17049,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 1,
+        "internalName": "SineFilmizlesen",
+        "description": "SineFilmizlesen film kayna\u011f\u0131",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/SineFilmizlesen.cs3",
+        "name": "SineFilmizlesen"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=sinefy3.com&sz=%size%",
+        "fileHash": "sha256-87f87a18e0addbbff1d6fd8a4e6ab74ebddf611acca56afe298e7c8e0b3b000d",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 19594,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 1,
+        "internalName": "Sinefy",
+        "description": "Sinefy - Film ve Dizi",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/Sinefy.cs3",
+        "name": "Sinefy"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=www.sinema.cx&sz=%size%",
+        "fileHash": "sha256-678357ac55fc2470dd56ea84517e0e33489043be3331fb71b4a02f82c9f14ed5",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 16731,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 24,
+        "internalName": "SinemaCX",
+        "description": "G\u00fcncel ve en iyi yabanc\u0131 filmleri y\u00fcksek g\u00f6r\u00fcnt\u00fc kalitesinde, T\u00fcrk\u00e7e dublaj ve altyaz\u0131 se\u00e7enekleriyle filmleri full izleyin.",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/SinemaCX.cs3",
+        "name": "SinemaCX"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=sinemakolik.com&sz=%size%",
+        "fileHash": "sha256-8de5cbd7c5b7db18584b15fbda65f8a3613e1c86965c5737ad20e2a3501cce47",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 35561,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 1,
+        "internalName": "Sinemakolik",
+        "description": "Sinemakolik film kaynagi - VidMixi resolver",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/Sinemakolik.cs3",
+        "name": "Sinemakolik"
+    },
+    {
+        "iconUrl": "https://play-lh.googleusercontent.com/brwGNmr7IjA_MKk_TTPs0va10hdKE_bD_a1lnKoiMuCayW98EHpRv55edA6aEoJlmwfX",
+        "fileHash": "sha256-328ed0fa269b37d96d65c2f27a2cb24bc6573984317c5a61669e32aa40a6cc0b",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 26488,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS",
+            "Maydanoz"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries",
+            "Anime"
+        ],
+        "version": 2,
+        "internalName": "Sinewix",
+        "description": "Sinewix | \u00dccretsiz Film - Dizi - Anime \u0130zleme Uygulamas\u0131",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/Sinewix.cs3",
+        "name": "Sinewix"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=spankbang.com&sz=%size%",
+        "fileHash": "sha256-00e0f9340a4ac7f8f483f86ed9da42a74bd38bdbb2da2f11fad4b71d65fe7544",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 23220,
+        "status": 1,
+        "language": "en",
+        "authors": [
+            "PUU",
+            "PARS"
+        ],
+        "tvTypes": [
+            "NSFW"
+        ],
+        "version": 1,
+        "internalName": "SpankBang",
+        "description": "(VPN) Eklenti VPN ile a\u00e7\u0131l\u0131r. Sonra a\u00e7\u0131lm\u0131yor diye s\u00f6\u011flenmeyin.",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/SpankBang.cs3",
+        "name": "SpankBang"
+    },
+    {
+        "iconUrl": "https://raw.githubusercontent.com/punistek/Maydonoz/main/SPOR1/icon.png",
+        "fileHash": "sha256-6e2e2fe2da32845dd1edf07b0000f4517495c4f9ad0ffbca04d5a5af3dc7217e",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 33248,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 5,
+        "internalName": "SPOR1",
+        "description": "SPOR1 - nokta at\u0131\u015f\u0131 tan\u0131lama loglu canl\u0131 spor kanallar\u0131",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/SPOR1.cs3",
+        "name": "SPOR1"
+    },
+    {
+        "iconUrl": "https://patronlig20.cfd/favicon.ico",
+        "fileHash": "sha256-ee26770c310cac2b10498cb7780925614474c09aced1e2f90b612a85bf44fcdc",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 15511,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 3,
+        "internalName": "TEST",
+        "description": "TEST PARS TV",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/TEST.cs3",
+        "name": "TEST"
+    },
+    {
+        "iconUrl": "https://www.betmarinotv1101.site/favicon.ico",
+        "fileHash": "sha256-87d9a495638cb2b8842a7bfd3d437a43c0f9428b3c446644b040e4cfd3320843",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 14985,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 1,
+        "internalName": "TEST2",
+        "description": "TEST - Betmarino canl\u0131 kanal ve ma\u00e7 kayna\u011f\u0131",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/TEST2.cs3",
+        "name": "TEST2"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=www.tlctv.com.tr&sz=%size%",
+        "fileHash": "sha256-11c159249e6d774f0fece6aec46447a1dabb62d2de7b10fc3b45a6e86f34ac3e",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 14407,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 19,
+        "internalName": "TLCtr",
+        "description": "TLC tr",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/TLCtr.cs3",
+        "name": "TLCtr"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=xhamster.com&sz=%size%",
+        "fileHash": "sha256-5aa02714b7d523685a95cc5b12d01c1f248f1b05ea8a21ebc12cff64b8e5fd3d",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 18485,
+        "status": 1,
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 1,
+        "internalName": "XHamster",
+        "description": "PARS Adult +18 ",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/XHamster.cs3",
+        "name": "XHamster"
+    },
+    {
+        "iconUrl": "https://klubnichka.live/favicon.ico",
+        "fileHash": "sha256-bba959ce3b867e2eabdfca8285e67bd0264896f09f925bb56ca1a0f14bac7499",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/punistek/Maydonoz",
+        "fileSize": 14409,
+        "status": 1,
+        "language": "ru",
+        "authors": [
+            "PARS"
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 1,
+        "internalName": "XXXCanli",
+        "description": "PARS Adult canl\u0131 TV sa\u011flay\u0131c\u0131s\u0131",
+        "url": "https://raw.githubusercontent.com/punistek/Maydonoz/builds/XXXCanli.cs3",
+        "name": "XXXCanli"
+    }
+]
