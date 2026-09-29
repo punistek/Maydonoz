@@ -1,0 +1,9 @@
+[
+  {
+    "packageName": "com.pars.skystream.dizipod",
+    "name": "DiziPod",
+    "version": 1,
+    "url": "dizipod/plugin.js",
+    "pluginJson": "dizipod/plugin.json"
+  }
+]

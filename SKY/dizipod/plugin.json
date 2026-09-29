@@ -1,0 +1,13 @@
+{
+  "packageName": "com.pars.skystream.dizipod",
+  "name": "DiziPod",
+  "version": 1,
+  "author": "PARS",
+  "language": "tr",
+  "baseUrl": "https://dizipod.com",
+  "categories": [
+    "Movies",
+    "Series"
+  ],
+  "description": "DiziPod film ve dizi sağlayıcısı"
+}

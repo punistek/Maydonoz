@@ -1,0 +1,9 @@
+{
+  "name": "PARS SkyStream",
+  "packageName": "com.pars.skystream.repo",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "plugins.json"
+  ],
+  "description": "PARS SkyStream eklentileri"
+}
